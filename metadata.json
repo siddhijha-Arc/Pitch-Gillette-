@@ -1,0 +1,6 @@
+{
+  "name": "Pitch-Ready: AI Startup Idea Evaluator",
+  "description": "Modular evaluation and problem-solving engine for startup ideas featuring deterministic TOPSIS decision-making, causal graph analysis, 6-agent committee evaluation, adaptive questioning, and native PPTX pitch deck export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

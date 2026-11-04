@@ -1,0 +1,483 @@
+/**
+ * Pitch-Ready: AI Startup Idea Evaluator & Problem-Solving Engine
+ * Master Application Container
+ * Live Gemini AI integration with QuotaExceeded prompt modal.
+ */
+
+import React, { useEffect, useState } from 'react';
+import { Header } from './components/Header.tsx';
+import { TabId, WorkflowNavigation } from './components/WorkflowNavigation.tsx';
+import { IdeaIntakeView } from './components/views/IdeaIntakeView.tsx';
+import { ProblemDecompositionView } from './components/views/ProblemDecompositionView.tsx';
+import { GapDetectionView } from './components/views/GapDetectionView.tsx';
+import { TopsisStudioView } from './components/views/TopsisStudioView.tsx';
+import { AdaptiveQuestionView } from './components/views/AdaptiveQuestionView.tsx';
+import { MultiAgentCouncilView } from './components/views/MultiAgentCouncilView.tsx';
+import { DynamicImprovementView } from './components/views/DynamicImprovementView.tsx';
+import { PitchDeckExportView } from './components/views/PitchDeckExportView.tsx';
+import { AlgorithmInspectionModal } from './components/modals/AlgorithmInspectionModal.tsx';
+import { ApiKeyModal } from './components/ApiKeyModal.tsx';
+import { StartupIdea, TopsisCriteriaWeights } from './types/index.ts';
+import { DeckThemeName } from './server/pptxGenerator.ts';
+
+export default function App() {
+  const [ideas, setIdeas] = useState<Array<{ id: string; title: string; overallReadinessScore: number }>>([]);
+  const [currentIdeaId, setCurrentIdeaId] = useState<string>('');
+  const [currentIdea, setCurrentIdea] = useState<StartupIdea | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('intake');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isAlgorithmsModalOpen, setIsAlgorithmsModalOpen] = useState<boolean>(false);
+
+  // Custom API Key state & quota error tracking
+  const [customApiKey, setCustomApiKey] = useState<string>(() => {
+    return localStorage.getItem('pitchready_gemini_api_key') || '';
+  });
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(false);
+  const [isQuotaExhaustedError, setIsQuotaExhaustedError] = useState<boolean>(false);
+
+  // Authenticated fetch wrapper injecting user-provided Gemini API key
+  const apiFetch = async (url: string, options: RequestInit = {}) => {
+    const headers = new Headers(options.headers || {});
+    if (customApiKey) {
+      headers.set('X-Gemini-Api-Key', customApiKey);
+    }
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 429) {
+      setIsQuotaExhaustedError(true);
+      setIsApiKeyModalOpen(true);
+    }
+    return res;
+  };
+
+  const handleSaveApiKey = (newKey: string) => {
+    setCustomApiKey(newKey);
+    localStorage.setItem('pitchready_gemini_api_key', newKey);
+    setIsQuotaExhaustedError(false);
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchIdeas();
+  }, []);
+
+  // Fetch full details whenever selected idea ID changes
+  useEffect(() => {
+    if (currentIdeaId) {
+      fetchIdeaDetails(currentIdeaId);
+    }
+  }, [currentIdeaId]);
+
+  const fetchIdeas = async () => {
+    try {
+      const res = await apiFetch('/api/ideas');
+      const data = await res.json();
+      if (data.success && data.ideas) {
+        setIdeas(data.ideas);
+        if (!currentIdeaId && data.ideas.length > 0) {
+          setCurrentIdeaId(data.ideas[0].id);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch ideas:', err);
+    }
+  };
+
+  const fetchIdeaDetails = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${id}`);
+      const data = await res.json();
+      if (data.success && data.idea) {
+        setCurrentIdea(data.idea);
+      }
+    } catch (err) {
+      console.error('Failed to fetch idea details:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 1. Deconstruct Idea (Module 1 & 2)
+  const handleDeconstruct = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res1 = await apiFetch(`/api/ideas/${currentIdea.id}/decompose`, { method: 'POST' });
+      await res1.json();
+
+      const res2 = await apiFetch(`/api/ideas/${currentIdea.id}/gaps`, { method: 'POST' });
+      await res2.json();
+
+      await fetchIdeaDetails(currentIdea.id);
+      setActiveTab('decomposition');
+    } catch (err) {
+      console.error('Deconstruction failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 2. Gap Detection (Module 2)
+  const handleDetectGaps = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/gaps`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea((prev) => (prev ? { ...prev, gaps: data.gaps } : null));
+      }
+    } catch (err) {
+      console.error('Gap detection failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 3. Solution Generation & TOPSIS (Module 4)
+  const handleGenerateSolutions = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/solutions`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea((prev) => (prev ? { ...prev, solutions: data.solutions } : null));
+      }
+    } catch (err) {
+      console.error('Solution generation failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 4. TOPSIS Weight Recalculation (Deterministic Math)
+  const handleUpdateTopsisWeights = async (weights: TopsisCriteriaWeights) => {
+    if (!currentIdea) return;
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/topsis/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weights }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea((prev) =>
+          prev
+            ? {
+                ...prev,
+                solutions: data.rankedSolutions,
+                topsisWeights: weights,
+              }
+            : null
+        );
+      }
+    } catch (err) {
+      console.error('TOPSIS recalculation failed:', err);
+    }
+  };
+
+  // 5. Adaptive Question Answer (Module 5)
+  const handleAnswerQuestion = async (questionId: string, answerText: string) => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/questions/${questionId}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answerText }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea(data.idea);
+        fetchIdeas();
+      }
+    } catch (err) {
+      console.error('Failed to submit question answer:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFetchNextQuestion = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/questions/next`);
+      const data = await res.json();
+      if (data.success && data.allQuestions) {
+        setCurrentIdea((prev) => (prev ? { ...prev, questions: data.allQuestions } : null));
+      }
+    } catch (err) {
+      console.error('Failed to fetch next question:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 6. Multi-Agent Evaluation (Module 6)
+  const handleRunAgents = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/agents/evaluate`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea((prev) =>
+          prev
+            ? {
+                ...prev,
+                agentCritiques: data.critiques,
+                consensusReport: data.consensusReport,
+              }
+            : null
+        );
+      }
+    } catch (err) {
+      console.error('Agent evaluation failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 7. Dynamic Improvement (Module 8)
+  const handleSynthesizeImprovement = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/improve`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea(data.idea);
+        fetchIdeas();
+      }
+    } catch (err) {
+      console.error('Improvement synthesis failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 8. Pitch Deck Generation (Module 9)
+  const handleGenerateDeck = async () => {
+    if (!currentIdea) return;
+    setIsLoading(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/deck/generate`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setCurrentIdea((prev) => (prev ? { ...prev, pitchDeck: data.slides } : null));
+      }
+    } catch (err) {
+      console.error('Deck generation failed:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 9. PPTX Export & File Download
+  const handleExportPptx = async (theme: DeckThemeName = 'EXECUTIVE_DARK') => {
+    if (!currentIdea) return;
+    setIsExporting(true);
+    try {
+      const res = await apiFetch(`/api/ideas/${currentIdea.id}/deck/export-pptx`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme }),
+      });
+
+      if (!res.ok) throw new Error('Failed to generate presentation');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentIdea.title.replace(/[^a-zA-Z0-9_-]/g, '_')}_PitchDeck.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('PPTX export error:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Create New Custom Idea
+  const [isCreatingIdea, setIsCreatingIdea] = useState<boolean>(false);
+
+  const handleSubmitNewIdea = async (
+    title: string,
+    rawPitch: string,
+    stage: string = 'CONCEPT'
+  ) => {
+    setIsLoading(true);
+    try {
+      const res = await apiFetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, rawPitch, stage }),
+      });
+      const data = await res.json();
+      if (data.success && data.idea) {
+        setIdeas((prev) => [
+          {
+            id: data.idea.id,
+            title: data.idea.title,
+            overallReadinessScore: data.idea.overallReadinessScore,
+          },
+          ...prev.filter((i) => i.id !== data.idea.id),
+        ]);
+        setCurrentIdeaId(data.idea.id);
+        setCurrentIdea(data.idea);
+        setIsCreatingIdea(false);
+        setActiveTab('decomposition');
+      } else {
+        if (data.error === 'QUOTA_EXCEEDED') {
+          setIsQuotaExhaustedError(true);
+          setIsApiKeyModalOpen(true);
+        } else {
+          alert(data.error || 'Failed to submit idea. Please check your pitch or Gemini API key.');
+        }
+      }
+    } catch (err: any) {
+      console.error('Failed to create new idea:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f9f9fb] text-[#171a1c] flex flex-col font-['Plus_Jakarta_Sans'] selection:bg-[#c1c9f6]/50 selection:text-[#1f1f47]">
+      {/* Header */}
+      <Header
+        currentIdea={currentIdea}
+        ideas={ideas}
+        onSelectIdea={(id) => {
+          setIsCreatingIdea(false);
+          setCurrentIdeaId(id);
+        }}
+        onOpenNewIdea={() => {
+          setActiveTab('intake');
+          setIsCreatingIdea(true);
+        }}
+        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+        onOpenApiKeyModal={() => {
+          setIsQuotaExhaustedError(false);
+          setIsApiKeyModalOpen(true);
+        }}
+        onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
+        isExporting={isExporting}
+      />
+
+      {/* Navigation tabs */}
+      <WorkflowNavigation
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          setActiveTab(tab);
+          if (tab === 'questions' && currentIdea && (!currentIdea.questions || currentIdea.questions.length === 0)) {
+            handleFetchNextQuestion();
+          }
+          if (tab === 'deck' && currentIdea && (!currentIdea.pitchDeck || currentIdea.pitchDeck.length === 0)) {
+            handleGenerateDeck();
+          }
+        }}
+        idea={currentIdea}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-6 pb-20">
+        {activeTab === 'intake' && (
+          <IdeaIntakeView
+            currentIdea={currentIdea}
+            onDeconstruct={handleDeconstruct}
+            onSubmitNewIdea={handleSubmitNewIdea}
+            isLoading={isLoading}
+            isSubmittingNew={isCreatingIdea || !currentIdea}
+            onToggleSubmitNew={(open) => setIsCreatingIdea(open)}
+            onOpenApiKeyModal={() => {
+              setIsQuotaExhaustedError(false);
+              setIsApiKeyModalOpen(true);
+            }}
+          />
+        )}
+
+        {activeTab === 'decomposition' && currentIdea && (
+          <ProblemDecompositionView
+            idea={currentIdea}
+            onDecompose={handleDeconstruct}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'gaps' && currentIdea && (
+          <GapDetectionView
+            idea={currentIdea}
+            onDetectGaps={handleDetectGaps}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'topsis' && currentIdea && (
+          <TopsisStudioView
+            idea={currentIdea}
+            onGenerateSolutions={handleGenerateSolutions}
+            onUpdateWeights={handleUpdateTopsisWeights}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'questions' && currentIdea && (
+          <AdaptiveQuestionView
+            idea={currentIdea}
+            onAnswerQuestion={handleAnswerQuestion}
+            onFetchNextQuestion={handleFetchNextQuestion}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'agents' && currentIdea && (
+          <MultiAgentCouncilView
+            idea={currentIdea}
+            onRunAgents={handleRunAgents}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'improvement' && currentIdea && (
+          <DynamicImprovementView
+            idea={currentIdea}
+            onSynthesizeImprovement={handleSynthesizeImprovement}
+            isLoading={isLoading}
+          />
+        )}
+
+        {activeTab === 'deck' && currentIdea && (
+          <PitchDeckExportView
+            idea={currentIdea}
+            onGenerateDeck={handleGenerateDeck}
+            onExportPptx={handleExportPptx}
+            isLoading={isLoading}
+            isExporting={isExporting}
+          />
+        )}
+      </main>
+
+      {/* Modals */}
+      <AlgorithmInspectionModal
+        isOpen={isAlgorithmsModalOpen}
+        onClose={() => setIsAlgorithmsModalOpen(false)}
+      />
+
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
+        onSaveKey={handleSaveApiKey}
+        currentKey={customApiKey}
+        isQuotaExhaustedError={isQuotaExhaustedError}
+      />
+    </div>
+  );
+}
