@@ -30,10 +30,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="font-bold text-xl sm:text-2xl text-[#1f1f47] tracking-tight font-sans">
-              Pitch-Ready
+              Gillette
             </span>
-            <span className="text-xs font-semibold tracking-wider text-[#6c7693] uppercase font-mono hidden sm:inline">
-              Engine
+            <span className="text-xs font-semibold tracking-wider text-[#576cdb] uppercase font-mono hidden sm:inline px-2 py-0.5 rounded-md bg-[#e0e7ff]">
+              Pitch Engine
             </span>
           </div>
         </div>

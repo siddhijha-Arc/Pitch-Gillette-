@@ -1,9 +1,10 @@
 /**
  * Sidebar Navigation Drawer - Clean Minimal SaaS Sidebar
- * Fixed Light Mode design with collapsible state.
+ * Fixed Light Mode design with collapsible state and Framer Motion micro-interactions.
  */
 
 import React from 'react';
+import { motion } from 'motion/react';
 import {
   FileText,
   GitFork,
@@ -17,8 +18,6 @@ import {
   Code2,
   KeyRound,
   FileDown,
-  ChevronLeft,
-  ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
   X,
@@ -58,7 +57,6 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onOpenApiKeyModal,
   onExportPptx,
   isExporting,
-  onOpenNewIdea,
   isCollapsed,
   onToggleCollapse,
   isMobileOpen,
@@ -156,33 +154,37 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
             </div>
             {!isCollapsed && (
               <div className="truncate">
-                <h1 className="font-bold text-sm text-[#1f1f47] tracking-tight truncate">
-                  Pitch-Ready Engine
+                <h1 className="font-bold text-sm text-[#1f1f47] tracking-tight truncate font-sans">
+                  Gillette Pitch Engine
                 </h1>
                 <span className="text-[10px] text-[#6c7693] font-mono block">
-                  v2.5 • RevenueCat SaaS UI
+                  v2.5 • Gillette SaaS Platform
                 </span>
               </div>
             )}
           </div>
 
           {/* Desktop Minimize/Collapse Toggle */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={onToggleCollapse}
             title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             className="p-1.5 rounded-xl text-[#6c7693] hover:text-[#1f1f47] hover:bg-[#f1f4f9] hidden md:flex transition-colors"
           >
             {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-          </button>
+          </motion.button>
 
           {/* Mobile Close Button */}
           {onCloseMobile && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={onCloseMobile}
               className="p-1.5 rounded-xl text-[#6c7693] hover:text-[#1f1f47] hover:bg-[#f1f4f9] md:hidden transition-colors"
             >
               <X className="h-5 w-5" />
-            </button>
+            </motion.button>
           )}
         </div>
 
@@ -211,8 +213,10 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
               const isActive = activeTab === item.id;
 
               return (
-                <button
+                <motion.button
                   key={item.id}
+                  whileHover={{ scale: 1.015, x: 2 }}
+                  whileTap={{ scale: 0.985 }}
                   onClick={() => {
                     onTabChange(item.id);
                     if (onCloseMobile) onCloseMobile();
@@ -220,7 +224,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                   title={isCollapsed ? item.label : undefined}
                   className={`w-full flex items-center ${
                     isCollapsed ? 'justify-center px-2 py-3' : 'justify-between px-3.5 py-2.5'
-                  } rounded-xl text-sm font-medium transition-all ${
+                  } rounded-xl text-sm font-medium transition-colors relative ${
                     isActive
                       ? 'bg-[#576cdb] text-white shadow-[0_2px_8px_rgba(87,108,219,0.25)]'
                       : 'text-[#6c7693] hover:text-[#1f1f47] hover:bg-[#f1f4f9]'
@@ -242,7 +246,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
                       {item.badge}
                     </span>
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>
@@ -251,7 +255,9 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         {/* Footer Console Actions */}
         <div className="p-3 border-t border-[#eaedf6] bg-[#f8f9fc] space-y-1.5">
           {/* Inspect Mathematics */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onOpenAlgorithmsModal}
             title={isCollapsed ? 'Inspect Mathematics' : undefined}
             className={`w-full flex items-center ${
@@ -260,10 +266,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           >
             <Code2 className="h-4.5 w-4.5 text-[#576cdb]" />
             {!isCollapsed && <span>Inspect Math</span>}
-          </button>
+          </motion.button>
 
           {/* API Key Modal */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onOpenApiKeyModal}
             title={isCollapsed ? 'API Key & Quota' : undefined}
             className={`w-full flex items-center ${
@@ -272,10 +280,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           >
             <KeyRound className="h-4.5 w-4.5 text-[#576cdb]" />
             {!isCollapsed && <span>API Key</span>}
-          </button>
+          </motion.button>
 
           {/* Export PPTX */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onExportPptx}
             disabled={isExporting || !idea}
             title={isCollapsed ? 'Export PPTX Deck' : undefined}
@@ -285,7 +295,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
           >
             <FileDown className="h-4.5 w-4.5" />
             {!isCollapsed && <span>{isExporting ? 'Compiling...' : 'Export PPTX'}</span>}
-          </button>
+          </motion.button>
         </div>
       </aside>
     </>

@@ -70,8 +70,8 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
               Deterministic TOPSIS & DAG
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-light text-[#1f1f47] tracking-tight">
-            {currentIdea ? currentIdea.title : 'Pitch-Ready Idea Engine'}
+          <h1 className="text-2xl sm:text-3xl font-light text-[#1f1f47] tracking-tight font-sans">
+            {currentIdea ? currentIdea.title : 'Gillette Pitch Engine'}
           </h1>
           <p className="text-sm sm:text-base text-[#575775] max-w-3xl font-normal leading-relaxed">
             {currentIdea?.tagline ||

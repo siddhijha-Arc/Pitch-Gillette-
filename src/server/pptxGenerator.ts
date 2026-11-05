@@ -76,7 +76,7 @@ export async function generatePptxBuffer(
   pres.layout = 'LAYOUT_16x9';
   pres.title = `${idea.title} - Pitch Deck`;
   pres.subject = idea.tagline;
-  pres.author = 'Pitch-Ready AI Evaluator';
+  pres.author = 'Gillette Pitch Engine';
 
   // Build each slide
   for (const slideData of slides) {
@@ -201,7 +201,7 @@ export async function generatePptxBuffer(
       rectRadius: 0.1,
     });
 
-    slide.addText(`Pitch-Ready Evaluation`, {
+    slide.addText(`Gillette Pitch Engine`, {
       x: 9.4,
       y: 5.25,
       w: 2.9,

@@ -1,31 +1,28 @@
 /**
- * Multi-Agent Evaluation Council View
+ * Multi-Agent Evaluation Council View - Gillette Pitch Engine
  *
- * Consolidates evaluation insights into persona-based reviewer cards,
- * removes duplicate upper sections, and introduces a minimal pop-up modal
- * featuring real-time 1-on-1 persona discussion with each expert judge.
+ * Exclusively displays persona-based reviewer perspective cards with
+ * interactive 1-on-1 discussion modals, spring animations, and Gillette SaaS styling.
  * Pure Light Mode.
  */
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Users,
   RefreshCw,
   Sparkles,
-  AlertTriangle,
   Scale,
   DollarSign,
   UserCheck,
   Cpu,
   TrendingUp,
   Award,
-  Swords,
   X,
   MessageSquare,
   Send,
   Bot,
   User,
-  ShieldCheck,
   ChevronRight,
 } from 'lucide-react';
 import { AgentCritique, StartupIdea } from '../../types/index.ts';
@@ -74,7 +71,7 @@ const AGENT_CONFIG: Record<
     text: 'text-[#dc2626]',
     roleTitle: 'Veteran CTO & Systems Architect',
     quickPrompts: [
-      'How do we guarantee 99.99% uptime in low-connectivity ambulances?',
+      'How do we guarantee 99.99% uptime in low-connectivity environments?',
       'What hardware/telemetry stack do you recommend for our MVP?',
       'How can we eliminate latency bottlenecks in high-stress dispatch?',
     ],
@@ -109,7 +106,7 @@ const AGENT_CONFIG: Record<
     quickPrompts: [
       'What is the single core feature we should focus on for our 30-day MVP?',
       'How do we remove onboarding friction for ambulance operators?',
-      'What pitch narrative framing works best for hackathon demos?',
+      'What pitch narrative framing works best for demo presentations?',
     ],
   },
 };
@@ -126,7 +123,6 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
   isLoading,
 }) => {
   const critiques = idea.agentCritiques || [];
-  const report = idea.consensusReport;
 
   // Selected judge persona for live pop-up modal & discussion
   const [selectedCritique, setSelectedCritique] = useState<AgentCritique | null>(null);
@@ -196,7 +192,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
     setIsChatSending(true);
 
     try {
-      const customKey = localStorage.getItem('pitchready_gemini_api_key') || '';
+      const customKey = localStorage.getItem('gillette_gemini_api_key') || localStorage.getItem('pitchready_gemini_api_key') || '';
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -245,23 +241,46 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.07,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 16 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const } },
+  };
+
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* 1. Header with Run Deliberation Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6"
+      >
         <div>
           <span className="text-xs font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
-            Orchestrated Expert Committee
+            Gillette Pitch Engine • Expert Council
           </span>
           <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-[-0.03em] font-sans">
             Evaluation Council
           </h1>
           <p className="text-sm sm:text-base text-[#6c7693] mt-1.5 font-normal leading-relaxed">
-            Autonomous multi-agent scrutiny with variance analysis and real-time persona discussions.
+            Persona-based reviewer perspectives with real-time 1-on-1 judge discussions.
           </p>
         </div>
 
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={onRunAgents}
           disabled={isLoading}
           className="px-7 py-3.5 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(87,108,219,0.25)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 shrink-0"
@@ -277,10 +296,10 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
               <span>Run Council Deliberation</span>
             </>
           )}
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      {/* 2. Reviewer Perspectives Grid (Persona-Based Cards) */}
+      {/* 2. Reviewer Perspectives Grid (Exclusively Persona Cards) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm sm:text-base font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
@@ -291,7 +310,12 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           {critiques.map((critique) => {
             const config = AGENT_CONFIG[critique.agent] || {
               icon: Users,
@@ -304,8 +328,11 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
             const badgeClass = getVerdictBadge(critique.verdict);
 
             return (
-              <div
+              <motion.div
                 key={critique.agent}
+                variants={itemVariants}
+                whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 28px rgba(87,108,219,0.12)' }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => openJudgeModal(critique)}
                 className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#576cdb] transition-all cursor-pointer flex flex-col justify-between group"
               >
@@ -365,243 +392,272 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
                 {/* Card Footer Call to Action Button */}
                 <div className="pt-4 border-t border-[#eaedf6]">
-                  <button className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] group-hover:border-[#576cdb]">
+                  <div className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] group-hover:border-[#576cdb]">
                     <MessageSquare className="h-4 w-4" />
                     <span>Discuss with {critique.agentName.split(' ')[0]} & Full Eval</span>
                     <ChevronRight className="h-4 w-4" />
-                  </button>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
-      {/* 5. Minimal Style Pop-Up Modal (`JudgePersonaModal`) */}
-      {selectedCritique && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#171a1c]/60 backdrop-blur-[4px] animate-in fade-in duration-200 font-sans">
-          {/* Backdrop click */}
-          <div className="absolute inset-0" onClick={closeJudgeModal} />
+      {/* 3. Minimal Style Pop-Up Modal (`JudgePersonaModal`) with Framer Motion AnimatePresence */}
+      <AnimatePresence>
+        {selectedCritique && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 font-sans">
+            {/* Animated Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeJudgeModal}
+              className="absolute inset-0 bg-[#171a1c]/60 backdrop-blur-[4px]"
+            />
 
-          {/* Pop-up Window */}
-          <div className="relative w-full max-w-4xl bg-white rounded-2xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            {(() => {
-              const config = AGENT_CONFIG[selectedCritique.agent] || {
-                icon: Users,
-                bg: 'bg-[#e0e7ff]',
-                text: 'text-[#4f46e5]',
-                roleTitle: selectedCritique.title,
-                quickPrompts: [],
-              };
-              const Icon = config.icon;
-              const badgeClass = getVerdictBadge(selectedCritique.verdict);
-              const history = chatHistories[selectedCritique.agent] || [];
+            {/* Pop-up Window */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.93, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] as const }}
+              className="relative w-full max-w-4xl bg-white rounded-2xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] z-10"
+            >
+              {(() => {
+                const config = AGENT_CONFIG[selectedCritique.agent] || {
+                  icon: Users,
+                  bg: 'bg-[#e0e7ff]',
+                  text: 'text-[#4f46e5]',
+                  roleTitle: selectedCritique.title,
+                  quickPrompts: [],
+                };
+                const Icon = config.icon;
+                const badgeClass = getVerdictBadge(selectedCritique.verdict);
+                const history = chatHistories[selectedCritique.agent] || [];
 
-              return (
-                <>
-                  <div className="p-6 border-b border-[#eaedf6] bg-[#f9f9fb] flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] font-sans">
-                            {selectedCritique.agentName}
-                          </h2>
-                          <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
-                            {selectedCritique.verdict.replace(/_/g, ' ')}
-                          </span>
+                return (
+                  <>
+                    {/* Modal Header */}
+                    <div className="p-6 border-b border-[#eaedf6] bg-[#f9f9fb] flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className={`w-12 h-12 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0 shadow-xs`}>
+                          <Icon className="h-6 w-6" />
                         </div>
-                        <p className="text-xs sm:text-sm text-[#6c7693] font-mono mt-0.5">
-                          {config.roleTitle} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={closeJudgeModal}
-                      className="w-10 h-10 rounded-full border border-[#eaedf6] bg-white hover:bg-[#eaedf6] flex items-center justify-center text-[#6c7693] transition-colors shrink-0"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  </div>
-
-                  {/* Modal Content Split: Left (Full Evaluation Data) & Right (Real-Time Persona Discussion) */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] overflow-y-auto flex-1">
-                    
-                    {/* Left Pane: Detailed Evaluation Breakdown */}
-                    <div className="p-6 space-y-6 overflow-y-auto">
-                      <div className="space-y-2">
-                        <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono">
-                          Executive Stance Summary
-                        </span>
-                        <p className="text-sm text-[#1f1f47] italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6] leading-relaxed">
-                          "{selectedCritique.summaryQuote}"
-                        </p>
-                      </div>
-
-                      {/* Bullish & Bearish Analysis */}
-                      <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-[#ecfdf5] border border-[#a7f3d0] space-y-1.5">
-                          <span className="text-xs font-bold text-[#059669] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                            🟢 Key Strength & Bullish Argument
-                          </span>
-                          <p className="text-xs sm:text-sm text-[#065f46] leading-relaxed">
-                            {selectedCritique.bullishArgument}
-                          </p>
-                        </div>
-
-                        <div className="p-4 rounded-xl bg-[#fef2f2] border border-[#fecaca] space-y-1.5">
-                          <span className="text-xs font-bold text-[#dc2626] uppercase tracking-wider font-mono flex items-center gap-1.5">
-                            🔴 Critical Risk & Bearish Objection
-                          </span>
-                          <p className="text-xs sm:text-sm text-[#991b1b] leading-relaxed">
-                            {selectedCritique.bearishArgument}
-                          </p>
-                          {selectedCritique.pivotsRecommended && selectedCritique.pivotsRecommended.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-[#fecaca] text-xs font-medium text-[#b45309]">
-                              <strong>Recommended Pivot:</strong> {selectedCritique.pivotsRecommended[0]}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Dimension Scores Matrix */}
-                      <div className="space-y-3">
-                        <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono block">
-                          Evaluation Dimensions Breakdown
-                        </span>
-                        <div className="grid grid-cols-2 gap-2.5">
-                          {Object.entries(selectedCritique.dimensionScores).map(([key, val]) => (
-                            <div key={key} className="p-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-0.5">
-                              <span className="text-[11px] text-[#6c7693] capitalize font-medium block truncate">
-                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                              </span>
-                              <span className="text-base font-bold font-mono text-[#576cdb]">
-                                {val}/10
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right Pane: Live Real-Time 1-on-1 Persona Chat */}
-                    <div className="p-6 flex flex-col justify-between bg-[#fcfcfd] space-y-4">
-                      <div>
-                        <div className="flex items-center justify-between border-b border-[#eaedf6] pb-3 mb-3">
+                        <div>
                           <div className="flex items-center gap-2">
-                            <MessageSquare className="h-4 w-4 text-[#576cdb]" />
-                            <span className="text-xs sm:text-sm font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
-                              Live Persona Discussion
+                            <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] font-sans">
+                              {selectedCritique.agentName}
+                            </h2>
+                            <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
+                              {selectedCritique.verdict.replace(/_/g, ' ')}
                             </span>
                           </div>
-                          <span className="text-xs text-[#059669] font-mono flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
-                            Active Persona
-                          </span>
-                        </div>
-
-                        {/* Recommended Quick Question Chips */}
-                        {config.quickPrompts.length > 0 && (
-                          <div className="space-y-1.5 mb-3">
-                            <span className="text-[11px] text-[#6c7693] font-mono">Suggested Persona Questions:</span>
-                            <div className="flex flex-wrap gap-1.5">
-                              {config.quickPrompts.map((promptText, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => handleSendMessage(promptText)}
-                                  disabled={isChatSending}
-                                  className="text-left text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-[#576cdb] hover:text-white text-[#1f1f47] border border-[#eaedf6] transition-colors disabled:opacity-50"
-                                >
-                                  {promptText}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Streamed Messages Box */}
-                        <div className="space-y-3 overflow-y-auto max-h-[300px] sm:max-h-[360px] pr-1 py-1">
-                          {history.map((msg, index) => (
-                            <div
-                              key={index}
-                              className={`flex items-start gap-2.5 text-xs sm:text-sm ${
-                                msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
-                              }`}
-                            >
-                              <div
-                                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs ${
-                                  msg.sender === 'user'
-                                    ? 'bg-[#576cdb] text-white'
-                                    : `${config.bg} ${config.text}`
-                                }`}
-                              >
-                                {msg.sender === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                              </div>
-
-                              <div
-                                className={`p-3.5 rounded-2xl max-w-[82%] space-y-1 ${
-                                  msg.sender === 'user'
-                                    ? 'bg-[#576cdb] text-white rounded-tr-none'
-                                    : 'bg-white text-[#1f1f47] border border-[#eaedf6] rounded-tl-none shadow-sm'
-                                }`}
-                              >
-                                <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                                <span
-                                  className={`text-[10px] block text-right font-mono ${
-                                    msg.sender === 'user' ? 'text-white/70' : 'text-[#84849a]'
-                                  }`}
-                                >
-                                  {msg.timestamp}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-
-                          {isChatSending && (
-                            <div className="flex items-center gap-2 text-xs text-[#576cdb] font-mono animate-pulse p-2">
-                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                              <span>{selectedCritique.agentName} is reviewing pitch data and typing response...</span>
-                            </div>
-                          )}
+                          <p className="text-xs sm:text-sm text-[#6c7693] font-mono mt-0.5">
+                            {config.roleTitle} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
+                          </p>
                         </div>
                       </div>
 
-                      {/* Chat Input Bar */}
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }}
-                        className="flex items-center gap-2 pt-2 border-t border-[#eaedf6]"
+                      <motion.button
+                        whileHover={{ scale: 1.1, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={closeJudgeModal}
+                        className="w-10 h-10 rounded-full border border-[#eaedf6] bg-white hover:bg-[#eaedf6] flex items-center justify-center text-[#6c7693] transition-colors shrink-0"
                       >
-                        <input
-                          type="text"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          placeholder={`Ask ${selectedCritique.agentName.split(' ')[0]} a question...`}
-                          disabled={isChatSending}
-                          className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eaedf6] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] placeholder-[#6c7693] outline-none transition-all disabled:opacity-50"
-                        />
-                        <button
-                          type="submit"
-                          disabled={isChatSending || !chatInput.trim()}
-                          className="px-4 py-3 rounded-xl bg-[#576cdb] hover:bg-[#485bc7] text-white font-medium text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shrink-0"
-                        >
-                          <Send className="h-4 w-4" />
-                        </button>
-                      </form>
+                        <X className="h-5 w-5" />
+                      </motion.button>
                     </div>
-                  </div>
-                </>
-              );
-            })()}
+
+                    {/* Modal Content Split: Left (Full Evaluation Data) & Right (Real-Time Persona Discussion) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] overflow-y-auto flex-1">
+                      
+                      {/* Left Pane: Detailed Evaluation Breakdown */}
+                      <div className="p-6 space-y-6 overflow-y-auto">
+                        <div className="space-y-2">
+                          <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono">
+                            Executive Stance Summary
+                          </span>
+                          <p className="text-sm text-[#1f1f47] italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6] leading-relaxed">
+                            "{selectedCritique.summaryQuote}"
+                          </p>
+                        </div>
+
+                        {/* Bullish & Bearish Analysis */}
+                        <div className="space-y-4">
+                          <div className="p-4 rounded-xl bg-[#ecfdf5] border border-[#a7f3d0] space-y-1.5">
+                            <span className="text-xs font-bold text-[#059669] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                              🟢 Key Strength & Bullish Argument
+                            </span>
+                            <p className="text-xs sm:text-sm text-[#065f46] leading-relaxed">
+                              {selectedCritique.bullishArgument}
+                            </p>
+                          </div>
+
+                          <div className="p-4 rounded-xl bg-[#fef2f2] border border-[#fecaca] space-y-1.5">
+                            <span className="text-xs font-bold text-[#dc2626] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                              🔴 Critical Risk & Bearish Objection
+                            </span>
+                            <p className="text-xs sm:text-sm text-[#991b1b] leading-relaxed">
+                              {selectedCritique.bearishArgument}
+                            </p>
+                            {selectedCritique.pivotsRecommended && selectedCritique.pivotsRecommended.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-[#fecaca] text-xs font-medium text-[#b45309]">
+                                <strong>Recommended Pivot:</strong> {selectedCritique.pivotsRecommended[0]}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Dimension Scores Matrix */}
+                        <div className="space-y-3">
+                          <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono block">
+                            Evaluation Dimensions Breakdown
+                          </span>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            {Object.entries(selectedCritique.dimensionScores).map(([key, val]) => (
+                              <div key={key} className="p-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-0.5">
+                                <span className="text-[11px] text-[#6c7693] capitalize font-medium block truncate">
+                                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                                </span>
+                                <span className="text-base font-bold font-mono text-[#576cdb]">
+                                  {val}/10
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Pane: Live Real-Time 1-on-1 Persona Chat */}
+                      <div className="p-6 flex flex-col justify-between bg-[#fcfcfd] space-y-4">
+                        <div>
+                          <div className="flex items-center justify-between border-b border-[#eaedf6] pb-3 mb-3">
+                            <div className="flex items-center gap-2">
+                              <MessageSquare className="h-4 w-4 text-[#576cdb]" />
+                              <span className="text-xs sm:text-sm font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
+                                Live Persona Discussion
+                              </span>
+                            </div>
+                            <span className="text-xs text-[#059669] font-mono flex items-center gap-1">
+                              <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
+                              Active Persona
+                            </span>
+                          </div>
+
+                          {/* Recommended Quick Question Chips */}
+                          {config.quickPrompts.length > 0 && (
+                            <div className="space-y-1.5 mb-3">
+                              <span className="text-[11px] text-[#6c7693] font-mono">Suggested Persona Questions:</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {config.quickPrompts.map((promptText, idx) => (
+                                  <motion.button
+                                    key={idx}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => handleSendMessage(promptText)}
+                                    disabled={isChatSending}
+                                    className="text-left text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-[#576cdb] hover:text-white text-[#1f1f47] border border-[#eaedf6] transition-colors disabled:opacity-50"
+                                  >
+                                    {promptText}
+                                  </motion.button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Streamed Messages Box */}
+                          <div className="space-y-3 overflow-y-auto max-h-[300px] sm:max-h-[360px] pr-1 py-1">
+                            <AnimatePresence>
+                              {history.map((msg, index) => (
+                                <motion.div
+                                  key={index}
+                                  initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  transition={{ duration: 0.2 }}
+                                  className={`flex items-start gap-2.5 text-xs sm:text-sm ${
+                                    msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
+                                  }`}
+                                >
+                                  <div
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs ${
+                                      msg.sender === 'user'
+                                        ? 'bg-[#576cdb] text-white'
+                                        : `${config.bg} ${config.text}`
+                                    }`}
+                                  >
+                                    {msg.sender === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                                  </div>
+
+                                  <div
+                                    className={`p-3.5 rounded-2xl max-w-[82%] space-y-1 ${
+                                      msg.sender === 'user'
+                                        ? 'bg-[#576cdb] text-white rounded-tr-none'
+                                        : 'bg-white text-[#1f1f47] border border-[#eaedf6] rounded-tl-none shadow-sm'
+                                    }`}
+                                  >
+                                    <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                    <span
+                                      className={`text-[10px] block text-right font-mono ${
+                                        msg.sender === 'user' ? 'text-white/70' : 'text-[#84849a]'
+                                      }`}
+                                    >
+                                      {msg.timestamp}
+                                    </span>
+                                  </div>
+                                </motion.div>
+                              ))}
+                            </AnimatePresence>
+
+                            {isChatSending && (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex items-center gap-2 text-xs text-[#576cdb] font-mono animate-pulse p-2"
+                              >
+                                <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                <span>{selectedCritique.agentName} is reviewing pitch data and typing response...</span>
+                              </motion.div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Chat Input Bar */}
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }}
+                          className="flex items-center gap-2 pt-2 border-t border-[#eaedf6]"
+                        >
+                          <input
+                            type="text"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder={`Ask ${selectedCritique.agentName.split(' ')[0]} a question...`}
+                            disabled={isChatSending}
+                            className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eaedf6] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] placeholder-[#6c7693] outline-none transition-all disabled:opacity-50 font-sans"
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            type="submit"
+                            disabled={isChatSending || !chatInput.trim()}
+                            className="px-4 py-3 rounded-xl bg-[#576cdb] hover:bg-[#485bc7] text-white font-medium text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shrink-0"
+                          >
+                            <Send className="h-4 w-4" />
+                          </motion.button>
+                        </form>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };

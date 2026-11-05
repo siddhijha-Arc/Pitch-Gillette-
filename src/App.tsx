@@ -5,6 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Header } from './components/Header.tsx';
 import { TabId, SidebarNavigation } from './components/SidebarNavigation.tsx';
 import { IdeaIntakeView } from './components/views/IdeaIntakeView.tsx';
@@ -399,81 +400,92 @@ export default function App() {
 
         {/* Main Content Area - Full screen width with generous padding */}
         <main className="flex-1 w-full px-6 sm:px-10 py-6 pb-20 overflow-x-hidden">
-        {activeTab === 'intake' && (
-          <IdeaIntakeView
-            currentIdea={currentIdea}
-            onDeconstruct={handleDeconstruct}
-            onSubmitNewIdea={handleSubmitNewIdea}
-            isLoading={isLoading}
-            isSubmittingNew={isCreatingIdea || !currentIdea}
-            onToggleSubmitNew={(open) => setIsCreatingIdea(open)}
-            onOpenApiKeyModal={() => {
-              setIsQuotaExhaustedError(false);
-              setIsApiKeyModalOpen(true);
-            }}
-          />
-        )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] as const }}
+              className="w-full"
+            >
+              {activeTab === 'intake' && (
+                <IdeaIntakeView
+                  currentIdea={currentIdea}
+                  onDeconstruct={handleDeconstruct}
+                  onSubmitNewIdea={handleSubmitNewIdea}
+                  isLoading={isLoading}
+                  isSubmittingNew={isCreatingIdea || !currentIdea}
+                  onToggleSubmitNew={(open) => setIsCreatingIdea(open)}
+                  onOpenApiKeyModal={() => {
+                    setIsQuotaExhaustedError(false);
+                    setIsApiKeyModalOpen(true);
+                  }}
+                />
+              )}
 
-        {activeTab === 'decomposition' && currentIdea && (
-          <ProblemDecompositionView
-            idea={currentIdea}
-            onDecompose={handleDeconstruct}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'decomposition' && currentIdea && (
+                <ProblemDecompositionView
+                  idea={currentIdea}
+                  onDecompose={handleDeconstruct}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'gaps' && currentIdea && (
-          <GapDetectionView
-            idea={currentIdea}
-            onDetectGaps={handleDetectGaps}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'gaps' && currentIdea && (
+                <GapDetectionView
+                  idea={currentIdea}
+                  onDetectGaps={handleDetectGaps}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'topsis' && currentIdea && (
-          <TopsisStudioView
-            idea={currentIdea}
-            onGenerateSolutions={handleGenerateSolutions}
-            onUpdateWeights={handleUpdateTopsisWeights}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'topsis' && currentIdea && (
+                <TopsisStudioView
+                  idea={currentIdea}
+                  onGenerateSolutions={handleGenerateSolutions}
+                  onUpdateWeights={handleUpdateTopsisWeights}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'questions' && currentIdea && (
-          <AdaptiveQuestionView
-            idea={currentIdea}
-            onAnswerQuestion={handleAnswerQuestion}
-            onFetchNextQuestion={handleFetchNextQuestion}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'questions' && currentIdea && (
+                <AdaptiveQuestionView
+                  idea={currentIdea}
+                  onAnswerQuestion={handleAnswerQuestion}
+                  onFetchNextQuestion={handleFetchNextQuestion}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'agents' && currentIdea && (
-          <MultiAgentCouncilView
-            idea={currentIdea}
-            onRunAgents={handleRunAgents}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'agents' && currentIdea && (
+                <MultiAgentCouncilView
+                  idea={currentIdea}
+                  onRunAgents={handleRunAgents}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'improvement' && currentIdea && (
-          <DynamicImprovementView
-            idea={currentIdea}
-            onSynthesizeImprovement={handleSynthesizeImprovement}
-            isLoading={isLoading}
-          />
-        )}
+              {activeTab === 'improvement' && currentIdea && (
+                <DynamicImprovementView
+                  idea={currentIdea}
+                  onSynthesizeImprovement={handleSynthesizeImprovement}
+                  isLoading={isLoading}
+                />
+              )}
 
-        {activeTab === 'deck' && currentIdea && (
-          <PitchDeckExportView
-            idea={currentIdea}
-            onGenerateDeck={handleGenerateDeck}
-            onExportPptx={handleExportPptx}
-            isLoading={isLoading}
-            isExporting={isExporting}
-          />
-        )}
-      </main>
+              {activeTab === 'deck' && currentIdea && (
+                <PitchDeckExportView
+                  idea={currentIdea}
+                  onGenerateDeck={handleGenerateDeck}
+                  onExportPptx={handleExportPptx}
+                  isLoading={isLoading}
+                  isExporting={isExporting}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
 
       {/* Modals */}
