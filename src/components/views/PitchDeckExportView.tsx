@@ -45,37 +45,37 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
   ];
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto py-2">
+    <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
-              <Presentation className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+              <Presentation className="h-5 w-5" />
             </div>
-            <h2 className="text-xl font-medium text-[#1f1f47] tracking-[-0.02em]">
+            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-tight font-sans">
               Investor Pitch Deck
-            </h2>
+            </h1>
           </div>
-          <p className="text-xs text-[#5e6573] mt-1">
+          <p className="text-sm sm:text-base text-[#5e6573] dark:text-[#84849a] mt-1 font-normal leading-relaxed">
             10-slide deck exportable directly to native Microsoft PowerPoint (.pptx).
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={onGenerateDeck}
             disabled={isLoading}
-            className="px-4 py-2 rounded-full bg-white hover:bg-slate-50 border border-[#eaedf6] text-xs font-semibold text-[#1f1f47] transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-full bg-white dark:bg-[#1a1d29] hover:bg-slate-50 dark:hover:bg-[#202538] border border-[#eaedf6] dark:border-[#2a2f42] text-xs sm:text-sm font-semibold text-[#1f1f47] dark:text-white transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {isLoading ? (
               <>
-                <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#576cdb]" />
+                <RefreshCw className="h-4 w-4 animate-spin text-[#576cdb]" />
                 <span>Generating...</span>
               </>
             ) : (
               <>
-                <Sparkles className="h-3.5 w-3.5 text-[#576cdb]" />
+                <Sparkles className="h-4 w-4 text-[#576cdb]" />
                 <span>Regenerate Slides</span>
               </>
             )}
@@ -84,7 +84,7 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
           <button
             onClick={() => onExportPptx(selectedTheme)}
             disabled={isExporting || slides.length === 0}
-            className="px-5 py-2.5 rounded-full bg-[#576cdb] hover:bg-[#485bc7] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2.5 rounded-full bg-[#576cdb] hover:bg-[#485bc7] text-white font-bold text-xs sm:text-sm shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
           >
             <FileDown className="h-4 w-4" />
             <span>{isExporting ? 'Compiling PPTX...' : 'Download PPTX'}</span>
@@ -93,21 +93,21 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
       </div>
 
       {/* Theme Selector Console */}
-      <div className="rounded-2xl bg-white border border-[#eaedf6] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
-        <div className="flex items-center gap-2 text-xs text-[#1f1f47] font-semibold">
-          <Palette className="h-4 w-4 text-[#576cdb]" />
+      <div className="rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="flex items-center gap-2.5 text-sm sm:text-base text-[#1f1f47] dark:text-white font-semibold">
+          <Palette className="h-5 w-5 text-[#576cdb]" />
           <span>PowerPoint Theme:</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {themes.map((theme) => (
             <button
               key={theme.id}
               onClick={() => setSelectedTheme(theme.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
+              className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                 selectedTheme === theme.id
                   ? 'bg-[#576cdb] text-white border-[#576cdb] shadow-sm'
-                  : 'bg-white text-[#5e6573] border-[#eaedf6] hover:text-[#1f1f47]'
+                  : 'bg-white dark:bg-[#1f2433] text-[#5e6573] dark:text-[#84849a] border-[#eaedf6] dark:border-[#2a2f42] hover:text-[#1f1f47] dark:hover:text-white'
               }`}
             >
               {theme.name}

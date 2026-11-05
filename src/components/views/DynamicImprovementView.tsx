@@ -35,19 +35,19 @@ export const DynamicImprovementView: React.FC<DynamicImprovementViewProps> = ({
   const openGaps = idea.gaps.filter((g) => g.status !== 'RESOLVED');
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto py-2">
+    <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
-              <GitCompare className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+              <GitCompare className="h-5 w-5" />
             </div>
-            <h2 className="text-xl font-medium text-[#1f1f47] tracking-[-0.02em]">
+            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-tight font-sans">
               Pitch Evolution & Diff
-            </h2>
+            </h1>
           </div>
-          <p className="text-xs text-[#5e6573] mt-1">
+          <p className="text-sm sm:text-base text-[#5e6573] dark:text-[#84849a] mt-1 font-normal leading-relaxed">
             Compare raw concept against de-risked proposal and audit resolved risks.
           </p>
         </div>
@@ -55,16 +55,16 @@ export const DynamicImprovementView: React.FC<DynamicImprovementViewProps> = ({
         <button
           onClick={onSynthesizeImprovement}
           disabled={isLoading}
-          className="px-5 py-2.5 rounded-full bg-[#576cdb] hover:bg-[#485bc7] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+          className="px-6 py-3 rounded-full bg-[#576cdb] hover:bg-[#485bc7] text-white text-sm font-semibold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isLoading ? (
             <>
-              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              <RefreshCw className="h-4 w-4 animate-spin" />
               <span>Synthesizing V{idea.currentVersion + 1}...</span>
             </>
           ) : (
             <>
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-4 w-4" />
               <span>Generate Refined Pitch V{idea.currentVersion + 1}</span>
             </>
           )}
@@ -72,50 +72,50 @@ export const DynamicImprovementView: React.FC<DynamicImprovementViewProps> = ({
       </div>
 
       {/* Delta Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-[11px] font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
               Iteration
             </span>
-            <span className="text-2xl font-bold font-mono text-[#1f1f47]">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] dark:text-white mt-1 block">
               Version {idea.currentVersion}
             </span>
-            <span className="text-[11px] text-[#5e6573] block mt-0.5">
+            <span className="text-xs sm:text-sm text-[#5e6573] dark:text-[#84849a] block mt-1">
               {versions.length} total snapshots
             </span>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
-            <GitCompare className="h-5 w-5" />
+          <div className="w-12 h-12 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+            <GitCompare className="h-6 w-6" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-[11px] font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
               Readiness Score
             </span>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold font-mono text-[#0e704a]">
+            <div className="flex items-center gap-2.5 mt-1">
+              <span className="text-3xl sm:text-4xl font-bold font-mono text-[#0e704a] dark:text-[#34d399]">
                 {idea.overallReadinessScore}%
               </span>
-              <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-[#c1f6e0]/60 text-[#0e704a]">
+              <span className="text-xs sm:text-sm font-bold font-mono px-2.5 py-1 rounded-full bg-[#c1f6e0]/60 dark:bg-[#10b981]/20 text-[#0e704a] dark:text-[#34d399]">
                 +{delta} pts
               </span>
             </div>
-            <span className="text-[11px] text-[#5e6573] block mt-0.5">Venture readiness</span>
+            <span className="text-xs sm:text-sm text-[#5e6573] dark:text-[#84849a] block mt-1">Venture readiness</span>
           </div>
-          <div className="w-10 h-10 rounded-full bg-[#c1f6e0] flex items-center justify-center text-[#0e704a]">
-            <TrendingUp className="h-5 w-5" />
+          <div className="w-12 h-12 rounded-full bg-[#c1f6e0] dark:bg-[#10b981]/20 flex items-center justify-center text-[#0e704a] dark:text-[#34d399]">
+            <TrendingUp className="h-6 w-6" />
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-[11px] font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
               Risk Mitigation
             </span>
-            <span className="text-2xl font-bold font-mono text-[#1f1f47]">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] dark:text-white mt-1 block">
               {resolvedGaps.length} / {idea.gaps.length}
             </span>
             <span className="text-[11px] text-[#5e6573] block mt-0.5">

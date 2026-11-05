@@ -24,25 +24,17 @@
   --color-coral-blush: #f7d4d4;
   --color-mint-whisper: #a6f2d2;
   --color-mint-veil: #c1f6e0;
-
-  /* Shadows */
-  --shadow-rc-sm: rgba(73, 46, 107, 0.04) 0px 2px 8px 0px;
-  --shadow-rc-md: rgba(73, 46, 107, 0.08) 0px 3px 16px 0px;
-  --shadow-rc-lg: rgba(71, 92, 133, 0.12) 0px 4px 20px 0px, rgba(144, 138, 208, 0.06) 0px 16px 36px 0px;
 }
 
 body {
-  background-color: #f9f9fb;
-  color: #171a1c;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   letter-spacing: -0.01em;
 }
 
-/* Design system card title utility */
+/* Card Heading according to design.md */
 .card-heading {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 500;
-  color: #1f1f47;
   letter-spacing: -0.02em;
 }
 
@@ -50,6 +42,73 @@ body {
 .whisper-heading {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-weight: 300;
-  color: #1f1f47;
   letter-spacing: -0.035em;
+}
+
+/* Premium Dark Mode Styling (design.md scheme) */
+.dark body,
+html.dark body {
+  background-color: #0c0e15;
+  color: #f1f3f9;
+}
+
+.dark .bg-white {
+  background-color: #141724;
+  border-color: #212638;
+  color: #f1f3f9;
+}
+
+.dark .bg-\[\#f9f9fb\] {
+  background-color: #191d2c;
+  border-color: #262c40;
+  color: #e2e8f0;
+}
+
+.dark .border-\[\#eaedf6\],
+.dark .border-\[\#d1d6e1\],
+.dark .border-\[\#f1f3f9\] {
+  border-color: #212638;
+}
+
+.dark .text-\[\#1f1f47\],
+.dark .text-\[\#171a1c\] {
+  color: #ffffff;
+}
+
+.dark .text-\[\#3d3d5c\] {
+  color: #cbd5e1;
+}
+
+.dark .text-\[\#6c7693\],
+.dark .text-\[\#575775\],
+.dark .text-\[\#84849a\],
+.dark .text-\[\#5e6573\],
+.dark .text-\[\#7c8397\] {
+  color: #94a3b8;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #181d2c;
+  border-color: #272d42;
+  color: #ffffff;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  background-color: #1d2335;
+  border-color: #576cdb;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+
+/* Header in dark mode */
+.dark header {
+  background-color: rgba(14, 17, 26, 0.95);
+  border-color: #1e2332;
 }

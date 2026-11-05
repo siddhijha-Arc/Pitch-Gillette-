@@ -62,17 +62,17 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
   };
 
   return (
-    <div className="space-y-8 max-w-[1200px] mx-auto py-4">
+    <div className="space-y-6 w-full mx-auto py-2">
       {/* 1. Header with Run Deliberation Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6">
         <div>
-          <span className="text-[11px] font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
+          <span className="text-xs font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
             Orchestrated Expert Committee
           </span>
-          <h1 className="text-3xl font-light text-[#1f1f47] tracking-[-0.03em]">
+          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-[-0.03em]">
             Evaluation Council
           </h1>
-          <p className="text-sm text-[#6c7693] mt-1">
+          <p className="text-sm sm:text-base text-[#6c7693] mt-1.5">
             Autonomous multi-agent scrutiny with variance analysis and dialectical disagreement detection.
           </p>
         </div>
@@ -80,7 +80,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         <button
           onClick={onRunAgents}
           disabled={isLoading}
-          className="px-6 py-3 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-xs font-semibold shadow-[0_4px_16px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2 disabled:opacity-50 shrink-0"
+          className="px-7 py-3.5 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2.5 disabled:opacity-50 shrink-0"
         >
           {isLoading ? (
             <>
@@ -98,54 +98,54 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
       {/* 2. Evaluation Summary (Prominent KPI Bar) */}
       {report && (
-        <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 shadow-[rgba(73,46,107,0.04)_0px_3px_16px]">
+        <div className="bg-white rounded-2xl border border-[#eaedf6] p-7 shadow-[rgba(73,46,107,0.04)_0px_3px_16px]">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#eaedf6]">
             {/* Overall Score */}
-            <div className="space-y-1 pt-3 md:pt-0">
-              <span className="text-xs font-medium text-[#6c7693] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 md:pt-0">
+              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
                 Mean Score (μ)
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-light text-[#1f1f47] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
                   {report.meanScore}
                 </span>
-                <span className="text-xs text-[#6c7693] font-mono">/ 10.0</span>
+                <span className="text-sm text-[#6c7693] font-mono">/ 10.0</span>
               </div>
             </div>
 
             {/* Number of Reviewers */}
-            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-medium text-[#6c7693] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
+              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
                 Reviewers
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-light text-[#1f1f47] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
                   {critiques.length}
                 </span>
-                <span className="text-xs text-[#576cdb] font-medium">Specialized AI</span>
+                <span className="text-xs text-[#576cdb] font-semibold">Specialized AI</span>
               </div>
             </div>
 
             {/* Score Gap (Variance) */}
-            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-medium text-[#6c7693] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
+              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
                 Score Variance (σ²)
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-light text-[#576cdb] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-light text-[#576cdb] tracking-tight">
                   {report.variance}
                 </span>
-                <span className="text-xs text-[#6c7693]">Spread</span>
+                <span className="text-xs text-[#6c7693] font-medium">Spread</span>
               </div>
             </div>
 
             {/* Confidence / Polarizing Metric */}
-            <div className="space-y-1 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-medium text-[#6c7693] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
+              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
                 Std Dev (σ)
               </span>
               <div className="flex items-baseline gap-2">
-                <span className={`text-3xl font-light tracking-tight ${report.isPolarizing ? 'text-[#d97706]' : 'text-[#059669]'}`}>
+                <span className={`text-4xl sm:text-5xl font-light tracking-tight ${report.isPolarizing ? 'text-[#d97706]' : 'text-[#059669]'}`}>
                   {report.standardDeviation}
                 </span>
                 <span className="text-xs font-medium text-[#6c7693]">
@@ -155,11 +155,11 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
             </div>
 
             {/* Verdict Status */}
-            <div className="space-y-1 pt-3 md:pt-0 md:pl-6 flex flex-col justify-center">
-              <span className="text-xs font-medium text-[#6c7693] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6 flex flex-col justify-center">
+              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
                 Consensus Verdict
               </span>
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold font-mono w-fit mt-1 border ${
+              <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold font-mono w-fit mt-1 border ${
                 report.isPolarizing ? 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]' : 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]'
               }`}>
                 {report.consensusVerdict.replace(/_/g, ' ')}
@@ -167,24 +167,33 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
             </div>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-[#eaedf6] text-sm text-[#3d3d5c] leading-relaxed">
-            <span className="font-semibold text-[#1f1f47] mr-2">Committee Synthesis:</span>
-            {report.synthesisSummary}
-          </div>
-
-          {report.outlierAgents.length > 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-[#fffbeb] border border-[#fde68a] text-xs text-[#92400e] space-y-1">
-              <span className="font-semibold flex items-center gap-1.5 font-mono">
-                <AlertTriangle className="h-4 w-4 text-[#d97706]" />
-                Statistically Significant Outlier Detected (|x - μ| &gt; 1.3σ)
-              </span>
-              {report.outlierAgents.map((outlier, idx) => (
-                <p key={idx} className="pl-5 text-[#78350f]">
-                  • {outlier.reason}
-                </p>
-              ))}
+          <div className="mt-7 pt-6 border-t border-[#eaedf6] grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+            <div className="text-sm sm:text-base text-[#3d3d5c] leading-relaxed bg-[#f9f9fb] p-5 rounded-2xl border border-[#eaedf6] flex flex-col justify-center">
+              <div>
+                <span className="font-semibold text-base text-[#1f1f47] block mb-1.5">Committee Synthesis</span>
+                <p className="text-sm leading-relaxed">{report.synthesisSummary}</p>
+              </div>
             </div>
-          )}
+
+            {report.outlierAgents.length > 0 ? (
+              <div className="p-5 rounded-2xl bg-[#fffbeb] border border-[#fde68a] text-sm text-[#92400e] space-y-2 flex flex-col justify-center">
+                <span className="font-semibold flex items-center gap-2 font-mono text-xs sm:text-sm">
+                  <AlertTriangle className="h-4.5 w-4.5 text-[#d97706] shrink-0" />
+                  Statistically Significant Outlier Detected (|x - μ| &gt; 1.3σ)
+                </span>
+                {report.outlierAgents.map((outlier, idx) => (
+                  <p key={idx} className="pl-6 text-[#78350f] text-xs sm:text-sm">
+                    • {outlier.reason}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <div className="p-5 rounded-2xl bg-[#ecfdf5] border border-[#a7f3d0] text-sm text-[#065f46] flex items-center gap-2.5">
+                <Award className="h-5 w-5 text-[#059669] shrink-0" />
+                <span>No statistically significant outlier detected (|x - μ| ≤ 1.3σ). All 6 reviewers maintain statistical alignment.</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -242,38 +251,41 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
             <h3 className="text-sm font-semibold text-[#1f1f47]">Dialectical Disagreements & Strategic Resolutions</h3>
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {report.dialecticalDisagreements.map((clash, idx) => (
-              <div key={idx} className="p-4 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#1f1f47] font-mono">
-                    Dimension: {clash.dimension}
-                  </span>
-                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e0e7ff] text-[#4f46e5]">
-                    Polar Tension
-                  </span>
+              <div key={idx} className="p-4 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="text-xs font-semibold text-[#1f1f47] font-mono">
+                      Dimension: {clash.dimension}
+                    </span>
+                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e0e7ff] text-[#4f46e5]">
+                      Polar Tension
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs mb-3">
+                    <div className="p-2.5 rounded-lg bg-white border border-[#eaedf6] space-y-1">
+                      <span className="font-semibold text-[#059669] block text-[11px]">Bull: {clash.agentA.agent}</span>
+                      <p className="text-[#3d3d5c] text-[11px] leading-tight">{clash.agentA.stance}</p>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-white border border-[#eaedf6] space-y-1">
+                      <span className="font-semibold text-[#dc2626] block text-[11px]">Bear: {clash.agentB.agent}</span>
+                      <p className="text-[#3d3d5c] text-[11px] leading-tight">{clash.agentB.stance}</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-lg bg-white border border-[#eaedf6] space-y-1">
-                    <span className="font-semibold text-[#059669] block">Bull: {clash.agentA.agent}</span>
-                    <p className="text-[#3d3d5c]">{clash.agentA.stance}</p>
-                  </div>
-                  <div className="p-3 rounded-lg bg-white border border-[#eaedf6] space-y-1">
-                    <span className="font-semibold text-[#dc2626] block">Bear: {clash.agentB.agent}</span>
-                    <p className="text-[#3d3d5c]">{clash.agentB.stance}</p>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-[#f0f4ff] border border-[#c1c9f6] text-xs text-[#1f1f47]">
-                  <span className="font-semibold text-[#576cdb] block mb-0.5">Strategic Resolution:</span>
-                  {clash.strategicResolution}
+                <div className="p-2.5 rounded-lg bg-[#f0f4ff] border border-[#c1c9f6] text-xs text-[#1f1f47]">
+                  <span className="font-semibold text-[#576cdb] block mb-0.5 text-[11px]">Strategic Resolution:</span>
+                  <p className="text-[11px] text-[#3d3d5c] leading-tight">{clash.strategicResolution}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
 
       {/* 5. Reviewer Perspectives (Spacious, minimal cards with expand/collapse) */}
       <div className="space-y-4">

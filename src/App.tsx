@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Header } from './components/Header.tsx';
-import { TabId, WorkflowNavigation } from './components/WorkflowNavigation.tsx';
+import { TabId, SidebarNavigation } from './components/SidebarNavigation.tsx';
 import { IdeaIntakeView } from './components/views/IdeaIntakeView.tsx';
 import { ProblemDecompositionView } from './components/views/ProblemDecompositionView.tsx';
 import { GapDetectionView } from './components/views/GapDetectionView.tsx';
@@ -28,6 +28,35 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isAlgorithmsModalOpen, setIsAlgorithmsModalOpen] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('pitchready_dark_mode') === 'true';
+  });
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('pitchready_sidebar_collapsed') === 'true';
+  });
+
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
+
+  const handleToggleSidebar = () => {
+    const next = !isSidebarCollapsed;
+    setIsSidebarCollapsed(next);
+    localStorage.setItem('pitchready_sidebar_collapsed', String(next));
+  };
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const handleToggleDarkMode = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    localStorage.setItem('pitchready_dark_mode', String(next));
+  };
 
   // Custom API Key state & quota error tracking
   const [customApiKey, setCustomApiKey] = useState<string>(() => {
@@ -350,30 +379,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9fb] text-[#171a1c] flex flex-col font-['Plus_Jakarta_Sans'] selection:bg-[#c1c9f6]/50 selection:text-[#1f1f47]">
-      {/* Header */}
-      <Header
-        currentIdea={currentIdea}
-        ideas={ideas}
-        onSelectIdea={(id) => {
-          setIsCreatingIdea(false);
-          setCurrentIdeaId(id);
-        }}
-        onOpenNewIdea={() => {
-          setActiveTab('intake');
-          setIsCreatingIdea(true);
-        }}
-        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
-        onOpenApiKeyModal={() => {
-          setIsQuotaExhaustedError(false);
-          setIsApiKeyModalOpen(true);
-        }}
-        onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
-        isExporting={isExporting}
-      />
-
-      {/* Navigation tabs */}
-      <WorkflowNavigation
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-[#12141c] text-[#f3f4f6]' : 'bg-[#f9f9fb] text-[#171a1c]'} flex font-sans selection:bg-[#576cdb]/30 selection:text-white`}>
+      {/* Sidebar Navigation Drawer */}
+      <SidebarNavigation
         activeTab={activeTab}
         onTabChange={(tab) => {
           setActiveTab(tab);
@@ -385,10 +393,32 @@ export default function App() {
           }
         }}
         idea={currentIdea}
+        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+        onOpenApiKeyModal={() => {
+          setIsQuotaExhaustedError(false);
+          setIsApiKeyModalOpen(true);
+        }}
+        onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
+        isExporting={isExporting}
+        onOpenNewIdea={() => {
+          setActiveTab('intake');
+          setIsCreatingIdea(true);
+        }}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={handleToggleDarkMode}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleSidebar}
+        isMobileOpen={isMobileDrawerOpen}
+        onCloseMobile={() => setIsMobileDrawerOpen(false)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-[1200px] w-full mx-auto px-4 sm:px-6 py-6 pb-20">
+      {/* Main Content Pane */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header Bar - Clean and minimal with app name */}
+        <Header onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)} />
+
+        {/* Main Content Area - Full screen width with generous padding */}
+        <main className="flex-1 w-full px-6 sm:px-10 py-6 pb-20 overflow-x-hidden">
         {activeTab === 'intake' && (
           <IdeaIntakeView
             currentIdea={currentIdea}
@@ -464,6 +494,7 @@ export default function App() {
           />
         )}
       </main>
+      </div>
 
       {/* Modals */}
       <AlgorithmInspectionModal

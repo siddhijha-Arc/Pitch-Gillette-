@@ -77,14 +77,14 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
   };
 
   return (
-    <div className="relative space-y-6 max-w-[1200px] mx-auto py-2 font-sans">
+    <div className="relative space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-5">
         <div>
-          <h1 className="text-3xl font-light text-[#1f1f47] tracking-tight font-sans">
+          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-tight font-sans">
             Problem Decomposition & Causal DAG
           </h1>
-          <p className="text-xs text-[#6c7693] mt-1 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#6c7693] mt-1.5 font-normal leading-relaxed">
             Directed Acyclic Graph separating foundational root causes from observable downstream symptoms.
           </p>
         </div>
@@ -92,16 +92,16 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
         <button
           onClick={onDecompose}
           disabled={isLoading}
-          className="px-4 py-2 rounded-full bg-white hover:bg-[#f9f9fb] border border-[#eaedf6] text-xs font-semibold text-[#1f1f47] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 shrink-0 font-sans"
+          className="px-5 py-2.5 rounded-full bg-white hover:bg-[#f9f9fb] border border-[#eaedf6] text-sm font-semibold text-[#1f1f47] shadow-sm transition-all flex items-center gap-2 disabled:opacity-50 shrink-0 font-sans"
         >
           {isLoading ? (
             <>
-              <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#576cdb]" />
+              <RefreshCw className="h-4 w-4 animate-spin text-[#576cdb]" />
               <span>Analyzing...</span>
             </>
           ) : (
             <>
-              <RefreshCw className="h-3.5 w-3.5 text-[#576cdb]" />
+              <RefreshCw className="h-4 w-4 text-[#576cdb]" />
               <span>Re-analyze Graph</span>
             </>
           )}
@@ -184,9 +184,9 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
               }`}
             >
               {/* Screenshot Header Row: Pill Badge on Left + Severity & Category on Right */}
-              <div className="flex items-center justify-between gap-2 border-b border-[#f1f3f9] pb-3">
+              <div className="flex items-center justify-between gap-2 border-b border-[#f1f3f9] pb-3.5">
                 <span
-                  className={`text-[11px] font-semibold px-3 py-1 rounded-full font-mono ${
+                  className={`text-xs sm:text-sm font-semibold px-3.5 py-1 rounded-full font-mono ${
                     isRoot
                       ? 'bg-[#d6dbf5] text-[#1f1f47]'
                       : 'bg-[#f7d4d4] text-[#f25a5a]'
@@ -195,7 +195,7 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
                   {isRoot ? 'Root Cause' : 'Symptom'}
                 </span>
 
-                <div className="flex items-center gap-3 text-xs font-mono">
+                <div className="flex items-center gap-3 text-xs sm:text-sm font-mono">
                   <span className="text-[#84849a]">
                     Severity: <strong className="text-[#1f1f47] font-bold">{problem.severity}/10</strong>
                   </span>
@@ -206,7 +206,7 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
               </div>
 
               {/* Exact Screenshot Title Typography: Medium weight, deep indigo, -0.02em tracking */}
-              <h3 className="text-[17px] sm:text-lg font-medium text-[#1f1f47] leading-snug tracking-[-0.02em] font-sans pt-1">
+              <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] leading-snug tracking-[-0.02em] font-sans pt-1">
                 {problem.title}
               </h3>
             </div>
@@ -214,104 +214,95 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
         })}
       </div>
 
-      {/* Slide-over Side Drawer Overlay */}
+      {/* Minimal Modal Popup Overlay */}
       {isDrawerOpen && activeProblem && (
-        <div className="fixed inset-0 z-50 overflow-hidden font-sans">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-[#171a1c]/30 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
-            onClick={closeDrawer}
-          />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#171a1c]/40 backdrop-blur-[3px] animate-in fade-in duration-200 font-sans">
+          {/* Backdrop click */}
+          <div className="absolute inset-0" onClick={closeDrawer} />
 
-          {/* Slide-in Drawer Panel */}
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white border-l border-[#eaedf6] shadow-2xl p-6 sm:p-8 overflow-y-auto space-y-6 flex flex-col justify-between animate-in slide-in-from-right duration-200">
-              <div className="space-y-6">
-                {/* Header Close Button */}
-                <div className="flex items-center justify-end">
-                  <button
-                    onClick={closeDrawer}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#6c7693] hover:text-[#1f1f47] transition-colors font-sans"
-                  >
-                    <span>Close</span>
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+          {/* Modal Content Box */}
+          <div className="relative w-full max-w-lg bg-white rounded-2xl border border-[#eaedf6] shadow-2xl p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-200">
+            {/* Header: Badges & Close Button */}
+            <div className="flex items-center justify-between border-b border-[#eaedf6] pb-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
+                    activeProblem.isRootCause
+                      ? 'bg-[#d6dbf5] text-[#1f1f47]'
+                      : 'bg-[#f7d4d4] text-[#f25a5a]'
+                  }`}
+                >
+                  {activeProblem.isRootCause ? 'Root Cause' : 'Downstream Symptom'}
+                </span>
 
-                {/* Badges */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full font-mono ${
-                      activeProblem.isRootCause
-                        ? 'bg-[#d6dbf5] text-[#1f1f47]'
-                        : 'bg-[#f7d4d4] text-[#f25a5a]'
-                    }`}
-                  >
-                    {activeProblem.isRootCause ? 'Root Cause' : 'Downstream Symptom'}
-                  </span>
+                <span className="text-xs font-bold font-mono px-3 py-1 rounded-md bg-[#e3e6e8] text-[#3d3d5c] uppercase">
+                  {activeProblem.category}
+                </span>
 
-                  <span className="text-xs font-bold font-mono px-3 py-1 rounded-md bg-[#e3e6e8] text-[#3d3d5c] uppercase">
-                    {activeProblem.category}
-                  </span>
-
-                  <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#f9f9fb] border border-[#eaedf6] text-[#1f1f47]">
-                    Severity: {activeProblem.severity}/10
-                  </span>
-                </div>
-
-                {/* Problem Title */}
-                <h2 className="text-xl sm:text-2xl font-medium text-[#1f1f47] leading-tight tracking-[-0.025em] font-sans">
-                  {activeProblem.title}
-                </h2>
-
-                {/* Description Box */}
-                <div className="p-4 bg-[#f9f9fb] rounded-2xl border border-[#eaedf6] space-y-2">
-                  <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
-                    Problem Mechanics
-                  </span>
-                  <p className="text-xs sm:text-sm text-[#3d3d5c] leading-relaxed font-normal font-sans">
-                    {activeProblem.description}
-                  </p>
-                </div>
-
-                {/* Assumptions List */}
-                {activeProblem.assumptions && activeProblem.assumptions.length > 0 && (
-                  <div className="space-y-3 pt-2">
-                    <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
-                      Underlying Assumptions ({activeProblem.assumptions.length})
-                    </span>
-                    <div className="space-y-2">
-                      {activeProblem.assumptions.map((ass) => {
-                        const badge = getClaimBadge(ass.type);
-                        const BadgeIcon = badge.icon;
-
-                        return (
-                          <div
-                            key={ass.id}
-                            className="p-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] text-xs space-y-1.5"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full font-mono ${badge.color}`}>
-                                {badge.label}
-                              </span>
-                              <span className="text-[10px] font-mono text-[#6c7693]">
-                                Conf: {Math.round(ass.confidence * 100)}%
-                              </span>
-                            </div>
-                            <p className="text-[#1f1f47] font-sans font-medium">{ass.statement}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-[#f9f9fb] border border-[#eaedf6] text-[#1f1f47]">
+                  Severity: {activeProblem.severity}/10
+                </span>
               </div>
 
-              {/* Footer ID */}
-              <div className="pt-4 border-t border-[#eaedf6] flex items-center justify-between text-xs text-[#84849a] font-mono">
-                <span>Category: {activeProblem.category}</span>
-                <span>ID: {activeProblem.id}</span>
+              <button
+                onClick={closeDrawer}
+                className="w-8 h-8 rounded-full border border-[#eaedf6] bg-white hover:bg-[#f9f9fb] flex items-center justify-center text-[#7c8397] hover:text-[#1f1f47] transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Problem Title */}
+            <h2 className="text-xl sm:text-2xl font-medium text-[#1f1f47] leading-tight tracking-[-0.025em]">
+              {activeProblem.title}
+            </h2>
+
+            {/* Description Box */}
+            <div className="p-4 bg-[#f9f9fb] rounded-2xl border border-[#eaedf6] space-y-2">
+              <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
+                Problem Mechanics
+              </span>
+              <p className="text-xs sm:text-sm text-[#3d3d5c] leading-relaxed font-normal">
+                {activeProblem.description}
+              </p>
+            </div>
+
+            {/* Assumptions List */}
+            {activeProblem.assumptions && activeProblem.assumptions.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
+                  Underlying Assumptions ({activeProblem.assumptions.length})
+                </span>
+                <div className="space-y-2">
+                  {activeProblem.assumptions.map((ass) => {
+                    const badge = getClaimBadge(ass.type);
+                    const BadgeIcon = badge.icon;
+
+                    return (
+                      <div
+                        key={ass.id}
+                        className="p-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] text-xs space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full font-mono ${badge.color}`}>
+                            {badge.label}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#6c7693]">
+                            Conf: {Math.round(ass.confidence * 100)}%
+                          </span>
+                        </div>
+                        <p className="text-[#1f1f47] font-medium">{ass.statement}</p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+            )}
+
+            {/* Footer ID */}
+            <div className="pt-4 border-t border-[#eaedf6] flex items-center justify-between text-xs text-[#84849a] font-mono">
+              <span>Category: {activeProblem.category}</span>
+              <span>ID: {activeProblem.id}</span>
             </div>
           </div>
         </div>
