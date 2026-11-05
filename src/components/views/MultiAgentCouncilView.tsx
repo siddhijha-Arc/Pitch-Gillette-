@@ -1,8 +1,9 @@
 /**
- * Multi-Agent Evaluation Council View - Apple-Inspired Minimal SaaS Redesign
+ * Multi-Agent Evaluation Council View
  *
- * Clean white canvas, subtle borders, compact KPI summary bar, collapsible reviewer cards,
- * and minimal score distribution chart without losing any underlying data or functionality.
+ * Consolidates evaluation insights into persona-based reviewer cards,
+ * removes duplicate upper sections, and introduces a minimal pop-up modal
+ * featuring real-time 1-on-1 persona discussion with each expert judge.
  */
 
 import React, { useState } from 'react';
@@ -18,10 +19,15 @@ import {
   TrendingUp,
   Award,
   Swords,
-  ChevronDown,
-  ChevronUp,
+  X,
+  MessageSquare,
+  Send,
+  Bot,
+  User,
+  ShieldCheck,
+  ChevronRight,
 } from 'lucide-react';
-import { StartupIdea } from '../../types/index.ts';
+import { AgentCritique, StartupIdea } from '../../types/index.ts';
 
 interface MultiAgentCouncilViewProps {
   idea: StartupIdea;
@@ -31,15 +37,87 @@ interface MultiAgentCouncilViewProps {
 
 const AGENT_CONFIG: Record<
   string,
-  { icon: React.ElementType; bg: string; text: string }
+  {
+    icon: React.ElementType;
+    bg: string;
+    text: string;
+    quickPrompts: string[];
+    roleTitle: string;
+  }
 > = {
-  DollarSign: { icon: DollarSign, bg: 'bg-[#e0e7ff]', text: 'text-[#4f46e5]' },
-  UserCheck: { icon: UserCheck, bg: 'bg-[#ecfdf5]', text: 'text-[#059669]' },
-  Cpu: { icon: Cpu, bg: 'bg-[#fef2f2]', text: 'text-[#dc2626]' },
-  Scale: { icon: Scale, bg: 'bg-[#f3e8ff]', text: 'text-[#7c3aed]' },
-  TrendingUp: { icon: TrendingUp, bg: 'bg-[#f0fdf4]', text: 'text-[#16a34a]' },
-  Award: { icon: Award, bg: 'bg-[#fffbeb]', text: 'text-[#d97706]' },
+  VC_PARTNER: {
+    icon: DollarSign,
+    bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
+    text: 'text-[#4f46e5] dark:text-[#818cf8]',
+    roleTitle: 'General Partner, Tier-1 VC',
+    quickPrompts: [
+      'What TAM & market moat metric would upgrade your score to 10/10?',
+      'How should we structure our Series A valuation pitch?',
+      'What unit economics do you need to see before investing?',
+    ],
+  },
+  ICP_CUSTOMER: {
+    icon: UserCheck,
+    bg: 'bg-[#ecfdf5] dark:bg-[#10b981]/20',
+    text: 'text-[#059669] dark:text-[#34d399]',
+    roleTitle: 'Chief Medical Officer, Regional Hospital System',
+    quickPrompts: [
+      'How can we prove zero clinical liability to your hospital board?',
+      'What EHR integration features (Epic/Cerner) are non-negotiable?',
+      'What transfer response time would make you sign a contract today?',
+    ],
+  },
+  TECH_ARCHITECT: {
+    icon: Cpu,
+    bg: 'bg-[#fef2f2] dark:bg-[#ef4444]/20',
+    text: 'text-[#dc2626] dark:text-[#f87171]',
+    roleTitle: 'Veteran CTO & Systems Architect',
+    quickPrompts: [
+      'How do we guarantee 99.99% uptime in low-connectivity ambulances?',
+      'What hardware/telemetry stack do you recommend for our MVP?',
+      'How can we eliminate latency bottlenecks in high-stress dispatch?',
+    ],
+  },
+  LEGAL_COUNSEL: {
+    icon: Scale,
+    bg: 'bg-[#f3e8ff] dark:bg-[#a855f7]/20',
+    text: 'text-[#7c3aed] dark:text-[#c084fc]',
+    roleTitle: 'Healthcare Regulatory & Compliance Attorney',
+    quickPrompts: [
+      'How do we structure our corporate entity to satisfy state medical boards?',
+      'What contract terms prevent Anti-Kickback statute violations?',
+      'What HIPAA compliance safeguards must we launch with on Day 1?',
+    ],
+  },
+  FINANCIAL_ANALYST: {
+    icon: TrendingUp,
+    bg: 'bg-[#f0fdf4] dark:bg-[#22c55e]/20',
+    text: 'text-[#16a34a] dark:text-[#4ade80]',
+    roleTitle: 'CFO & Unit Economics Specialist',
+    quickPrompts: [
+      'How can we improve our gross margin profile above 70%?',
+      'What is the safest pricing tier strategy for enterprise contracts?',
+      'What CAC payback period benchmark should we aim for?',
+    ],
+  },
+  HACKATHON_JUDGE: {
+    icon: Award,
+    bg: 'bg-[#fffbeb] dark:bg-[#f59e0b]/20',
+    text: 'text-[#d97706] dark:text-[#fbbf24]',
+    roleTitle: 'Product Builder & Founder',
+    quickPrompts: [
+      'What is the single core feature we should focus on for our 30-day MVP?',
+      'How do we remove onboarding friction for ambulance operators?',
+      'What pitch narrative framing works best for hackathon demos?',
+    ],
+  },
 };
+
+interface ChatMessage {
+  sender: 'user' | 'judge';
+  text: string;
+  timestamp: string;
+}
 
 export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
   idea,
@@ -48,39 +126,144 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 }) => {
   const critiques = idea.agentCritiques || [];
   const report = idea.consensusReport;
-  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+
+  // Selected judge persona for live pop-up modal & discussion
+  const [selectedCritique, setSelectedCritique] = useState<AgentCritique | null>(null);
+
+  // Per-agent chat history state map: agentRole -> ChatMessage[]
+  const [chatHistories, setChatHistories] = useState<Record<string, ChatMessage[]>>({});
+
+  // Active chat input string & loading state
+  const [chatInput, setChatInput] = useState<string>('');
+  const [isChatSending, setIsChatSending] = useState<boolean>(false);
 
   const getVerdictBadge = (verdict: string) => {
     switch (verdict) {
       case 'STRONG_BUY':
-        return 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]';
+        return 'bg-[#ecfdf5] dark:bg-[#10b981]/20 text-[#059669] dark:text-[#34d399] border-[#a7f3d0] dark:border-[#10b981]/30';
       case 'CONDITIONAL_PASS':
-        return 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]';
+        return 'bg-[#fffbeb] dark:bg-[#f59e0b]/20 text-[#d97706] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#f59e0b]/30';
       default:
-        return 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
+        return 'bg-[#fef2f2] dark:bg-[#ef4444]/20 text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-[#ef4444]/30';
+    }
+  };
+
+  const openJudgeModal = (critique: AgentCritique) => {
+    setSelectedCritique(critique);
+    setChatInput('');
+
+    // Initialize initial greeting if chat history is empty
+    if (!chatHistories[critique.agent] || chatHistories[critique.agent].length === 0) {
+      const initialGreeting: ChatMessage = {
+        sender: 'judge',
+        text: `Hello! I'm ${critique.agentName} (${critique.title}). I gave your pitch a score of ${critique.overallScore}/10 (${critique.verdict.replace(/_/g, ' ')}). My primary feedback: "${critique.summaryQuote}". What questions do you have about my evaluation or recommendations?`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setChatHistories((prev) => ({
+        ...prev,
+        [critique.agent]: [initialGreeting],
+      }));
+    }
+  };
+
+  const closeJudgeModal = () => {
+    setSelectedCritique(null);
+  };
+
+  const handleSendMessage = async (customText?: string) => {
+    const textToSend = customText || chatInput.trim();
+    if (!textToSend || !selectedCritique || isChatSending) return;
+
+    const agentRole = selectedCritique.agent;
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    const userMsg: ChatMessage = {
+      sender: 'user',
+      text: textToSend,
+      timestamp: nowStr,
+    };
+
+    // Append user message immediately
+    const existingHistory = chatHistories[agentRole] || [];
+    const updatedHistory = [...existingHistory, userMsg];
+
+    setChatHistories((prev) => ({
+      ...prev,
+      [agentRole]: updatedHistory,
+    }));
+    setChatInput('');
+    setIsChatSending(true);
+
+    try {
+      const customKey = localStorage.getItem('pitchready_gemini_api_key') || '';
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (customKey) {
+        headers['X-Gemini-Api-Key'] = customKey;
+      }
+
+      const res = await fetch(`/api/ideas/${idea.id}/agents/${agentRole}/chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          userMessage: textToSend,
+          chatHistory: existingHistory.map((m) => ({
+            sender: m.sender,
+            text: m.text,
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.response) {
+        const judgeMsg: ChatMessage = {
+          sender: 'judge',
+          text: data.response,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setChatHistories((prev) => ({
+          ...prev,
+          [agentRole]: [...(prev[agentRole] || []), judgeMsg],
+        }));
+      } else {
+        const errorMsg: ChatMessage = {
+          sender: 'judge',
+          text: `[System]: ${data.error || 'Failed to connect with judge persona. Please check your Gemini API key.'}`,
+          timestamp: nowStr,
+        };
+        setChatHistories((prev) => ({
+          ...prev,
+          [agentRole]: [...(prev[agentRole] || []), errorMsg],
+        }));
+      }
+    } catch (err: any) {
+      console.error('Failed to chat with judge:', err);
+    } finally {
+      setIsChatSending(false);
     }
   };
 
   return (
-    <div className="space-y-6 w-full mx-auto py-2">
+    <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* 1. Header with Run Deliberation Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-6">
         <div>
           <span className="text-xs font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
             Orchestrated Expert Committee
           </span>
-          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-[-0.03em]">
+          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-[-0.03em] font-sans">
             Evaluation Council
           </h1>
-          <p className="text-sm sm:text-base text-[#6c7693] mt-1.5">
-            Autonomous multi-agent scrutiny with variance analysis and dialectical disagreement detection.
+          <p className="text-sm sm:text-base text-[#6c7693] dark:text-[#84849a] mt-1.5 font-normal leading-relaxed">
+            Autonomous multi-agent scrutiny with variance analysis and real-time persona discussions.
           </p>
         </div>
 
         <button
           onClick={onRunAgents}
           disabled={isLoading}
-          className="px-7 py-3.5 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2.5 disabled:opacity-50 shrink-0"
+          className="px-7 py-3.5 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-sm font-semibold shadow-[0_4px_16px_rgba(87,108,219,0.25)] transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 shrink-0"
         >
           {isLoading ? (
             <>
@@ -98,28 +281,28 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
       {/* 2. Evaluation Summary (Prominent KPI Bar) */}
       {report && (
-        <div className="bg-white rounded-2xl border border-[#eaedf6] p-7 shadow-[rgba(73,46,107,0.04)_0px_3px_16px]">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#eaedf6]">
+        <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-7 shadow-[rgba(73,46,107,0.04)_0px_3px_16px]">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#eaedf6] dark:divide-[#1e2332]">
             {/* Overall Score */}
             <div className="space-y-1.5 pt-3 md:pt-0">
-              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
                 Mean Score (μ)
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] dark:text-white tracking-tight">
                   {report.meanScore}
                 </span>
-                <span className="text-sm text-[#6c7693] font-mono">/ 10.0</span>
+                <span className="text-sm text-[#6c7693] dark:text-[#84849a] font-mono">/ 10.0</span>
               </div>
             </div>
 
             {/* Number of Reviewers */}
             <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
                 Reviewers
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
+                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] dark:text-white tracking-tight">
                   {critiques.length}
                 </span>
                 <span className="text-xs text-[#576cdb] font-semibold">Specialized AI</span>
@@ -128,27 +311,27 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
             {/* Score Gap (Variance) */}
             <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
                 Score Variance (σ²)
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl sm:text-5xl font-light text-[#576cdb] tracking-tight">
                   {report.variance}
                 </span>
-                <span className="text-xs text-[#6c7693] font-medium">Spread</span>
+                <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-medium">Spread</span>
               </div>
             </div>
 
             {/* Confidence / Polarizing Metric */}
             <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
                 Std Dev (σ)
               </span>
               <div className="flex items-baseline gap-2">
-                <span className={`text-4xl sm:text-5xl font-light tracking-tight ${report.isPolarizing ? 'text-[#d97706]' : 'text-[#059669]'}`}>
+                <span className={`text-4xl sm:text-5xl font-light tracking-tight ${report.isPolarizing ? 'text-[#d97706]' : 'text-[#059669] dark:text-[#34d399]'}`}>
                   {report.standardDeviation}
                 </span>
-                <span className="text-xs font-medium text-[#6c7693]">
+                <span className="text-xs font-medium text-[#6c7693] dark:text-[#84849a]">
                   {report.isPolarizing ? 'Polarizing' : 'Aligned'}
                 </span>
               </div>
@@ -156,129 +339,85 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
             {/* Verdict Status */}
             <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6 flex flex-col justify-center">
-              <span className="text-xs font-semibold text-[#6c7693] uppercase tracking-wider block">
+              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
                 Consensus Verdict
               </span>
               <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold font-mono w-fit mt-1 border ${
-                report.isPolarizing ? 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]' : 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]'
+                report.isPolarizing ? 'bg-[#fffbeb] dark:bg-[#f59e0b]/20 text-[#d97706] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#f59e0b]/30' : 'bg-[#ecfdf5] dark:bg-[#10b981]/20 text-[#059669] dark:text-[#34d399] border-[#a7f3d0] dark:border-[#10b981]/30'
               }`}>
                 {report.consensusVerdict.replace(/_/g, ' ')}
               </span>
             </div>
           </div>
 
-          <div className="mt-7 pt-6 border-t border-[#eaedf6] grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-            <div className="text-sm sm:text-base text-[#3d3d5c] leading-relaxed bg-[#f9f9fb] p-5 rounded-2xl border border-[#eaedf6] flex flex-col justify-center">
+          <div className="mt-7 pt-6 border-t border-[#eaedf6] dark:border-[#1e2332] grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+            <div className="text-sm sm:text-base text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed bg-[#f9f9fb] dark:bg-[#12141c] p-5 rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] flex flex-col justify-center">
               <div>
-                <span className="font-semibold text-base text-[#1f1f47] block mb-1.5">Committee Synthesis</span>
-                <p className="text-sm leading-relaxed">{report.synthesisSummary}</p>
+                <span className="font-semibold text-base text-[#1f1f47] dark:text-white block mb-1.5">Committee Synthesis</span>
+                <p className="text-sm sm:text-base leading-relaxed">{report.synthesisSummary}</p>
               </div>
             </div>
 
             {report.outlierAgents.length > 0 ? (
-              <div className="p-5 rounded-2xl bg-[#fffbeb] border border-[#fde68a] text-sm text-[#92400e] space-y-2 flex flex-col justify-center">
+              <div className="p-5 rounded-2xl bg-[#fffbeb] dark:bg-[#ea580c]/10 border border-[#fde68a] dark:border-[#ea580c]/30 text-sm text-[#92400e] dark:text-[#f97316] space-y-2 flex flex-col justify-center">
                 <span className="font-semibold flex items-center gap-2 font-mono text-xs sm:text-sm">
-                  <AlertTriangle className="h-4.5 w-4.5 text-[#d97706] shrink-0" />
+                  <AlertTriangle className="h-4.5 w-4.5 text-[#d97706] dark:text-[#ea580c] shrink-0" />
                   Statistically Significant Outlier Detected (|x - μ| &gt; 1.3σ)
                 </span>
                 {report.outlierAgents.map((outlier, idx) => (
-                  <p key={idx} className="pl-6 text-[#78350f] text-xs sm:text-sm">
+                  <p key={idx} className="pl-6 text-[#78350f] dark:text-[#fdba74] text-xs sm:text-sm">
                     • {outlier.reason}
                   </p>
                 ))}
               </div>
             ) : (
-              <div className="p-5 rounded-2xl bg-[#ecfdf5] border border-[#a7f3d0] text-sm text-[#065f46] flex items-center gap-2.5">
-                <Award className="h-5 w-5 text-[#059669] shrink-0" />
-                <span>No statistically significant outlier detected (|x - μ| ≤ 1.3σ). All 6 reviewers maintain statistical alignment.</span>
+              <div className="p-5 rounded-2xl bg-[#ecfdf5] dark:bg-[#10b981]/10 border border-[#a7f3d0] dark:border-[#10b981]/30 text-sm text-[#065f46] dark:text-[#34d399] flex items-center gap-2.5">
+                <Award className="h-5 w-5 text-[#059669] dark:text-[#34d399] shrink-0" />
+                <span className="text-sm sm:text-base">No statistically significant outlier detected (|x - μ| ≤ 1.3σ). All 6 reviewers maintain statistical alignment.</span>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* 3. Key Insights (Strengths & Areas to Improve) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Strengths (Bullish Consensus) */}
-        <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_2px_8px]">
-          <div className="flex items-center gap-2 border-b border-[#eaedf6] pb-3">
-            <div className="w-2 h-2 rounded-full bg-[#059669]" />
-            <h3 className="text-sm font-semibold text-[#1f1f47]">Key Strengths & Bullish Consensus</h3>
-          </div>
-          <div className="space-y-3">
-            {critiques.map((c) => (
-              <div key={c.agent} className="p-3.5 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-1">
-                <div className="flex items-center justify-between text-xs font-medium">
-                  <span className="text-[#1f1f47] font-semibold">{c.agentName}</span>
-                  <span className="text-[#059669] font-mono font-bold">{c.dimensionScores.tamAndOpportunity || c.overallScore}/10</span>
-                </div>
-                <p className="text-xs text-[#3d3d5c] leading-relaxed">{c.bullishArgument}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Areas to Improve (Bearish Risks & Pivots) */}
-        <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_2px_8px]">
-          <div className="flex items-center gap-2 border-b border-[#eaedf6] pb-3">
-            <div className="w-2 h-2 rounded-full bg-[#dc2626]" />
-            <h3 className="text-sm font-semibold text-[#1f1f47]">Critical Risks & Recommended Pivots</h3>
-          </div>
-          <div className="space-y-3">
-            {critiques.map((c) => (
-              <div key={c.agent} className="p-3.5 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-1">
-                <div className="flex items-center justify-between text-xs font-medium">
-                  <span className="text-[#1f1f47] font-semibold">{c.agentName}</span>
-                  <span className="text-[#dc2626] font-mono font-bold">Risk Factor</span>
-                </div>
-                <p className="text-xs text-[#3d3d5c] leading-relaxed">{c.bearishArgument}</p>
-                {c.pivotsRecommended && c.pivotsRecommended.length > 0 && (
-                  <p className="text-[11px] text-[#b45309] font-medium pt-1">
-                    ↳ Pivot: {c.pivotsRecommended[0]}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Score Trend / Distribution Chart */}
-      {report && report.dialecticalDisagreements.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_2px_8px]">
-          <div className="flex items-center gap-2 border-b border-[#eaedf6] pb-3">
-            <Swords className="h-4 w-4 text-[#576cdb]" />
-            <h3 className="text-sm font-semibold text-[#1f1f47]">Dialectical Disagreements & Strategic Resolutions</h3>
+      {/* 3. Dialectical Disagreements Bar */}
+      {report && report.dialecticalDisagreements && report.dialecticalDisagreements.length > 0 && (
+        <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_2px_8px]">
+          <div className="flex items-center gap-2.5 border-b border-[#eaedf6] dark:border-[#1e2332] pb-3.5">
+            <Swords className="h-5 w-5 text-[#576cdb]" />
+            <h3 className="text-base font-semibold text-[#1f1f47] dark:text-white font-sans">
+              Dialectical Disagreements & Strategic Resolutions
+            </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {report.dialecticalDisagreements.map((clash, idx) => (
-              <div key={idx} className="p-4 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-3 flex flex-col justify-between">
+              <div key={idx} className="p-5 rounded-xl bg-[#f9f9fb] dark:bg-[#12141c] border border-[#eaedf6] dark:border-[#1e2332] space-y-3 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-xs font-semibold text-[#1f1f47] font-mono">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs sm:text-sm font-semibold text-[#1f1f47] dark:text-white font-mono">
                       Dimension: {clash.dimension}
                     </span>
-                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-[#e0e7ff] text-[#4f46e5]">
+                    <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#e0e7ff] dark:bg-[#576cdb]/20 text-[#4f46e5] dark:text-[#818cf8]">
                       Polar Tension
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs mb-3">
-                    <div className="p-2.5 rounded-lg bg-white border border-[#eaedf6] space-y-1">
-                      <span className="font-semibold text-[#059669] block text-[11px]">Bull: {clash.agentA.agent}</span>
-                      <p className="text-[#3d3d5c] text-[11px] leading-tight">{clash.agentA.stance}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm mb-3">
+                    <div className="p-3 rounded-lg bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] space-y-1">
+                      <span className="font-semibold text-[#059669] dark:text-[#34d399] block text-xs">Bull: {clash.agentA.agent}</span>
+                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] text-xs leading-snug">{clash.agentA.stance}</p>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-white border border-[#eaedf6] space-y-1">
-                      <span className="font-semibold text-[#dc2626] block text-[11px]">Bear: {clash.agentB.agent}</span>
-                      <p className="text-[#3d3d5c] text-[11px] leading-tight">{clash.agentB.stance}</p>
+                    <div className="p-3 rounded-lg bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] space-y-1">
+                      <span className="font-semibold text-[#dc2626] dark:text-[#f87171] block text-xs">Bear: {clash.agentB.agent}</span>
+                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] text-xs leading-snug">{clash.agentB.stance}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-[#f0f4ff] border border-[#c1c9f6] text-xs text-[#1f1f47]">
-                  <span className="font-semibold text-[#576cdb] block mb-0.5 text-[11px]">Strategic Resolution:</span>
-                  <p className="text-[11px] text-[#3d3d5c] leading-tight">{clash.strategicResolution}</p>
+                <div className="p-3 rounded-lg bg-[#f0f4ff] dark:bg-[#576cdb]/10 border border-[#c1c9f6] dark:border-[#576cdb]/30 text-xs sm:text-sm text-[#1f1f47] dark:text-white">
+                  <span className="font-semibold text-[#576cdb] block mb-1 text-xs">Strategic Resolution:</span>
+                  <p className="text-xs text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed">{clash.strategicResolution}</p>
                 </div>
               </div>
             ))}
@@ -286,93 +425,328 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         </div>
       )}
 
-
-      {/* 5. Reviewer Perspectives (Spacious, minimal cards with expand/collapse) */}
+      {/* 4. Reviewer Perspectives Grid (Persona-Based Cards) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#1f1f47] uppercase tracking-wider">
+          <h2 className="text-sm sm:text-base font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono">
             Reviewer Perspectives ({critiques.length})
           </h2>
-          <span className="text-xs text-[#6c7693]">Click any card to expand full evaluation</span>
+          <span className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a]">
+            Click any reviewer card to open 1-on-1 persona discussion pop-up
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {critiques.map((critique) => {
-            const config = AGENT_CONFIG[critique.avatarIcon] || {
+            const config = AGENT_CONFIG[critique.agent] || {
               icon: Users,
-              bg: 'bg-[#e0e7ff]',
-              text: 'text-[#4f46e5]',
+              bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
+              text: 'text-[#4f46e5] dark:text-[#818cf8]',
+              roleTitle: critique.title,
+              quickPrompts: [],
             };
             const Icon = config.icon;
             const badgeClass = getVerdictBadge(critique.verdict);
-            const isExpanded = expandedAgent === critique.agent;
 
             return (
               <div
                 key={critique.agent}
-                onClick={() => setExpandedAgent(isExpanded ? null : critique.agent)}
-                className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#d1d6e1] transition-all cursor-pointer flex flex-col justify-between"
+                onClick={() => openJudgeModal(critique)}
+                className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#576cdb] dark:hover:border-[#576cdb] transition-all cursor-pointer flex flex-col justify-between group"
               >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-3.5">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0`}>
-                        <Icon className="h-5 w-5" />
+                      <div className={`w-11 h-11 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0 group-hover:scale-105 transition-transform`}>
+                        <Icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <h4 className="text-[17px] font-medium text-[#1f1f47] tracking-[-0.02em]">{critique.agentName}</h4>
-                        <span className="text-xs text-[#6c7693] block">{critique.title}</span>
+                        <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] dark:text-white tracking-[-0.02em] font-sans">
+                          {critique.agentName}
+                        </h3>
+                        <span className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a] block font-mono">
+                          {config.roleTitle}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <span className="text-2xl font-light font-mono text-[#1f1f47]">
+                    <div className="text-right shrink-0">
+                      <span className="text-2xl sm:text-3xl font-light font-mono text-[#1f1f47] dark:text-white">
                         {critique.overallScore}
                       </span>
-                      <span className="text-xs text-[#6c7693] font-mono">/10</span>
+                      <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-mono">/10</span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className={`text-[10px] font-semibold font-mono uppercase px-2.5 py-1 rounded-full border ${badgeClass}`}>
+                    <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
                       {critique.verdict.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-xs text-[#6c7693] font-mono">{critique.agent}</span>
+                    <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-mono">{critique.agent}</span>
                   </div>
 
-                  <p className="text-xs text-[#3d3d5c] italic bg-[#f9f9fb] p-3 rounded-xl border border-[#eaedf6]">
+                  {/* Quoted Summary Stance */}
+                  <p className="text-xs sm:text-sm text-[#3d3d5c] dark:text-[#c4c8d5] italic bg-[#f9f9fb] dark:bg-[#12141c] p-4 rounded-xl border border-[#eaedf6] dark:border-[#1e2332] leading-relaxed">
                     "{critique.summaryQuote}"
                   </p>
+
+                  {/* Integrated Bullish & Bearish Snippets */}
+                  <div className="space-y-2 pt-1 text-xs sm:text-sm">
+                    <div className="flex items-start gap-2 text-[#059669] dark:text-[#34d399]">
+                      <span className="font-semibold shrink-0 font-mono">🟢 Strength:</span>
+                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] line-clamp-2 leading-relaxed">
+                        {critique.bullishArgument}
+                      </p>
+                    </div>
+
+                    <div className="flex items-start gap-2 text-[#dc2626] dark:text-[#f87171]">
+                      <span className="font-semibold shrink-0 font-mono">🔴 Risk:</span>
+                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] line-clamp-2 leading-relaxed">
+                        {critique.bearishArgument}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                {isExpanded && (
-                  <div className="space-y-3 pt-3 border-t border-[#eaedf6] text-xs animate-in fade-in duration-200">
-                    <div>
-                      <span className="font-semibold text-[#059669] block mb-0.5">Bullish Argument:</span>
-                      <p className="text-[#3d3d5c] leading-relaxed">{critique.bullishArgument}</p>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-[#dc2626] block mb-0.5">Bearish Risk:</span>
-                      <p className="text-[#3d3d5c] leading-relaxed">{critique.bearishArgument}</p>
-                    </div>
-                    {critique.pivotsRecommended && critique.pivotsRecommended.length > 0 && (
-                      <div>
-                        <span className="font-semibold text-[#d97706] block mb-0.5">Recommended Pivot:</span>
-                        <p className="text-[#3d3d5c] leading-relaxed">{critique.pivotsRecommended[0]}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between pt-2 border-t border-[#eaedf6] text-xs text-[#576cdb] font-medium">
-                  <span>{isExpanded ? 'Collapse Details' : 'Expand Reviewer Details'}</span>
-                  {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {/* Card Footer Call to Action Button */}
+                <div className="pt-4 border-t border-[#eaedf6] dark:border-[#1e2332]">
+                  <button className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] dark:bg-[#1a1d29] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] dark:border-[#2a2f42] group-hover:border-[#576cdb]">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Discuss with {critique.agentName.split(' ')[0]} & Full Eval</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* 5. Minimal Style Pop-Up Modal (`JudgePersonaModal`) */}
+      {selectedCritique && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#171a1c]/60 backdrop-blur-[4px] animate-in fade-in duration-200 font-sans">
+          {/* Backdrop click */}
+          <div className="absolute inset-0" onClick={closeJudgeModal} />
+
+          {/* Pop-up Window */}
+          <div className="relative w-full max-w-4xl bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            {(() => {
+              const config = AGENT_CONFIG[selectedCritique.agent] || {
+                icon: Users,
+                bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
+                text: 'text-[#4f46e5] dark:text-[#818cf8]',
+                roleTitle: selectedCritique.title,
+                quickPrompts: [],
+              };
+              const Icon = config.icon;
+              const badgeClass = getVerdictBadge(selectedCritique.verdict);
+              const history = chatHistories[selectedCritique.agent] || [];
+
+              return (
+                <>
+                  <div className="p-6 border-b border-[#eaedf6] dark:border-[#1e2332] bg-[#f9f9fb] dark:bg-[#12141c] flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className={`w-12 h-12 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] dark:text-white font-sans">
+                            {selectedCritique.agentName}
+                          </h2>
+                          <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
+                            {selectedCritique.verdict.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a] font-mono mt-0.5">
+                          {config.roleTitle} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={closeJudgeModal}
+                      className="w-10 h-10 rounded-full border border-[#eaedf6] dark:border-[#2a2f42] bg-white dark:bg-[#1a1d29] hover:bg-[#eaedf6] dark:hover:bg-[#202538] flex items-center justify-center text-[#6c7693] dark:text-white transition-colors shrink-0"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* Modal Content Split: Left (Full Evaluation Data) & Right (Real-Time Persona Discussion) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] dark:divide-[#1e2332] overflow-y-auto flex-1">
+                    
+                    {/* Left Pane: Detailed Evaluation Breakdown */}
+                    <div className="p-6 space-y-6 overflow-y-auto">
+                      <div className="space-y-2">
+                        <span className="text-xs font-bold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider font-mono">
+                          Executive Stance Summary
+                        </span>
+                        <p className="text-sm text-[#1f1f47] dark:text-white italic bg-[#f9f9fb] dark:bg-[#12141c] p-4 rounded-xl border border-[#eaedf6] dark:border-[#1e2332] leading-relaxed">
+                          "{selectedCritique.summaryQuote}"
+                        </p>
+                      </div>
+
+                      {/* Bullish & Bearish Analysis */}
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-[#ecfdf5] dark:bg-[#10b981]/10 border border-[#a7f3d0] dark:border-[#10b981]/30 space-y-1.5">
+                          <span className="text-xs font-bold text-[#059669] dark:text-[#34d399] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                            🟢 Key Strength & Bullish Argument
+                          </span>
+                          <p className="text-xs sm:text-sm text-[#065f46] dark:text-[#a7f3d0] leading-relaxed">
+                            {selectedCritique.bullishArgument}
+                          </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-[#fef2f2] dark:bg-[#ef4444]/10 border border-[#fecaca] dark:border-[#ef4444]/30 space-y-1.5">
+                          <span className="text-xs font-bold text-[#dc2626] dark:text-[#f87171] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                            🔴 Critical Risk & Bearish Objection
+                          </span>
+                          <p className="text-xs sm:text-sm text-[#991b1b] dark:text-[#fca5a5] leading-relaxed">
+                            {selectedCritique.bearishArgument}
+                          </p>
+                          {selectedCritique.pivotsRecommended && selectedCritique.pivotsRecommended.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-[#fecaca] dark:border-[#ef4444]/20 text-xs font-medium text-[#b45309] dark:text-[#fbbf24]">
+                              <strong>Recommended Pivot:</strong> {selectedCritique.pivotsRecommended[0]}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Dimension Scores Matrix */}
+                      <div className="space-y-3">
+                        <span className="text-xs font-bold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider font-mono block">
+                          Evaluation Dimensions Breakdown
+                        </span>
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {Object.entries(selectedCritique.dimensionScores).map(([key, val]) => (
+                            <div key={key} className="p-3 rounded-xl bg-[#f9f9fb] dark:bg-[#12141c] border border-[#eaedf6] dark:border-[#1e2332] space-y-0.5">
+                              <span className="text-[11px] text-[#6c7693] dark:text-[#84849a] capitalize font-medium block truncate">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              </span>
+                              <span className="text-base font-bold font-mono text-[#576cdb]">
+                                {val}/10
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right Pane: Live Real-Time 1-on-1 Persona Chat */}
+                    <div className="p-6 flex flex-col justify-between bg-[#fcfcfd] dark:bg-[#141720] space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between border-b border-[#eaedf6] dark:border-[#1e2332] pb-3 mb-3">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-[#576cdb]" />
+                            <span className="text-xs sm:text-sm font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono">
+                              Live Persona Discussion
+                            </span>
+                          </div>
+                          <span className="text-xs text-[#059669] dark:text-[#34d399] font-mono flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
+                            Active Persona
+                          </span>
+                        </div>
+
+                        {/* Recommended Quick Question Chips */}
+                        {config.quickPrompts.length > 0 && (
+                          <div className="space-y-1.5 mb-3">
+                            <span className="text-[11px] text-[#6c7693] dark:text-[#84849a] font-mono">Suggested Persona Questions:</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {config.quickPrompts.map((promptText, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleSendMessage(promptText)}
+                                  disabled={isChatSending}
+                                  className="text-left text-xs px-3 py-1.5 rounded-lg bg-white dark:bg-[#1a1d29] hover:bg-[#576cdb] hover:text-white text-[#1f1f47] dark:text-white border border-[#eaedf6] dark:border-[#2a2f42] transition-colors disabled:opacity-50"
+                                >
+                                  {promptText}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Streamed Messages Box */}
+                        <div className="space-y-3 overflow-y-auto max-h-[300px] sm:max-h-[360px] pr-1 py-1">
+                          {history.map((msg, index) => (
+                            <div
+                              key={index}
+                              className={`flex items-start gap-2.5 text-xs sm:text-sm ${
+                                msg.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
+                              }`}
+                            >
+                              <div
+                                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs ${
+                                  msg.sender === 'user'
+                                    ? 'bg-[#576cdb] text-white'
+                                    : `${config.bg} ${config.text}`
+                                }`}
+                              >
+                                {msg.sender === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                              </div>
+
+                              <div
+                                className={`p-3.5 rounded-2xl max-w-[82%] space-y-1 ${
+                                  msg.sender === 'user'
+                                    ? 'bg-[#576cdb] text-white rounded-tr-none'
+                                    : 'bg-white dark:bg-[#171a24] text-[#1f1f47] dark:text-white border border-[#eaedf6] dark:border-[#1e2332] rounded-tl-none shadow-sm'
+                                }`}
+                              >
+                                <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                <span
+                                  className={`text-[10px] block text-right font-mono ${
+                                    msg.sender === 'user' ? 'text-white/70' : 'text-[#84849a]'
+                                  }`}
+                                >
+                                  {msg.timestamp}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+
+                          {isChatSending && (
+                            <div className="flex items-center gap-2 text-xs text-[#576cdb] font-mono animate-pulse p-2">
+                              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                              <span>{selectedCritique.agentName} is reviewing pitch data and typing response...</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Chat Input Bar */}
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }}
+                        className="flex items-center gap-2 pt-2 border-t border-[#eaedf6] dark:border-[#1e2332]"
+                      >
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          placeholder={`Ask ${selectedCritique.agentName.split(' ')[0]} a question...`}
+                          disabled={isChatSending}
+                          className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] dark:text-white placeholder-[#6c7693] dark:placeholder-[#84849a] outline-none transition-all disabled:opacity-50"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isChatSending || !chatInput.trim()}
+                          className="px-4 py-3 rounded-xl bg-[#576cdb] hover:bg-[#485bc7] text-white font-medium text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 shrink-0"
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

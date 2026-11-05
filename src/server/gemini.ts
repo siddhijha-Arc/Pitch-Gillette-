@@ -450,3 +450,118 @@ Output JSON:
   const res = await callGeminiRestJson<{ slides: PitchDeckSlide[] }>(prompt, systemInstruction, apiKey);
   return res.slides || [];
 }
+
+/**
+ * Executes a freeform text generation prompt against Gemini for live chats
+ */
+async function callGeminiRestText(
+  contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }>,
+  systemInstruction: string,
+  userApiKey?: string
+): Promise<string> {
+  const apiKey = userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : DEFAULT_GEMINI_KEY;
+  if (!apiKey) {
+    throw new QuotaExceededError(
+      'GEMINI_API_KEY is not configured. Set the GEMINI_API_KEY environment variable on Render or enter your key in the UI.'
+    );
+  }
+
+  let lastError: any = null;
+
+  for (const model of MODELS_CASCADE) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemInstruction }],
+          },
+          contents,
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await res.json();
+      if (!res.ok) {
+        const errMsg = data.error?.message || '';
+        const errCode = data.error?.code;
+        if (errCode === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+          continue;
+        }
+        lastError = new Error(`Gemini API Error (${errCode}): ${errMsg}`);
+        continue;
+      }
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text.trim();
+    } catch (err: any) {
+      lastError = err;
+    }
+  }
+
+  throw lastError || new QuotaExceededError('Gemini text generation failed.');
+}
+
+/**
+ * 8. Real-time persona chat with individual council judges
+ */
+export async function chatWithJudgePersonaGemini(
+  idea: StartupIdea,
+  agentRole: string,
+  userMessage: string,
+  chatHistory: Array<{ sender: 'user' | 'judge'; text: string }> = [],
+  apiKey?: string
+): Promise<string> {
+  const critique = idea.agentCritiques?.find(
+    (c) => c.agent === agentRole
+  );
+
+  const personaPrompts: Record<string, string> = {
+    VC_PARTNER: `You are Marcus Thorne, General Partner at a top Tier-1 Venture Capital firm. You are direct, sharp, and focused on TAM, multi-billion dollar scalability, high gross margins, defensible moats, and exit multiples. You speak concise, professional VC terminology with sharp analytical questions.`,
+    ICP_CUSTOMER: `You are Dr. Sarah Jenkins, Chief Medical Officer at a major regional hospital system. You are pragmatic, patient-outcome-focused, and deeply concerned with clinical workflows, emergency department throughput, integration with EHRs (Epic/Cerner), and operational safety. Speak like an experienced executive physician.`,
+    TECH_ARCHITECT: `You are Alex Chen, a Veteran CTO and Cloud-Native Systems Architect. You are technical, precise, and obsessed with real-time data synchronization, microservices, latency, IoT hardware reliability, and distributed systems failovers. Speak like a senior tech lead.`,
+    LEGAL_COUNSEL: `You are Elena Rodriguez, a Healthcare Regulatory & Compliance Attorney. You are meticulous, risk-averse, and highly focused on HIPAA, MSO corporate structures, state medical boards, anti-kickback statutes, and legal liability moats. Speak like a sharp legal expert.`,
+    FINANCIAL_ANALYST: `You are David Wu, CFO & Unit Economics Specialist. You focus on cash flow, gross margins, CAC payback periods, COGS, pricing models, and capital efficiency. Speak like a sharp financial analyst.`,
+    HACKATHON_JUDGE: `You are Samir Patel, a Seasoned Product Builder and Hackathon Judge. You are pragmatic, action-oriented, and focused on rapid MVP iteration, user onboarding friction, time-to-value, and core product-market fit. Speak like a passionate product lead.`,
+  };
+
+  const systemInstruction = `${personaPrompts[agentRole] || 'You are an expert startup reviewer evaluating this venture.'}
+You are currently in a live 1-on-1 discussion with the founder regarding their startup "${idea.title}".
+
+Startup Context:
+- Pitch: "${idea.rawPitch}"
+- Your Evaluation Score: ${critique?.overallScore || 7}/10
+- Your Verdict: "${critique?.verdict || 'CONDITIONAL_PASS'}"
+- Your Summary Stance: "${critique?.summaryQuote || ''}"
+- Your Bullish View: "${critique?.bullishArgument || ''}"
+- Your Bearish Concerns: "${critique?.bearishArgument || ''}"
+- Recommended Pivots: "${critique?.pivotsRecommended?.join(', ') || ''}"
+
+Goal: Answer the founder's question directly, staying strictly in character with your persona. Be constructive, sharp, and authentic to your domain expertise. Keep your response concise, engaging, and professional (2-4 paragraphs max).`;
+
+  const contents = [
+    ...chatHistory.map((msg) => ({
+      role: (msg.sender === 'user' ? 'user' : 'model') as 'user' | 'model',
+      parts: [{ text: msg.text }],
+    })),
+    {
+      role: 'user' as const,
+      parts: [{ text: userMessage }],
+    },
+  ];
+
+  return callGeminiRestText(contents, systemInstruction, apiKey);
+}

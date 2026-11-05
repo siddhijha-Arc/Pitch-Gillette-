@@ -21,6 +21,7 @@ import {
   generateSolutionsWithGemini,
   runMultiAgentEvaluationWithGemini,
   synthesizeImprovedPitchWithGemini,
+  chatWithJudgePersonaGemini,
   DEFAULT_GEMINI_KEY,
 } from './gemini.ts';
 import { generatePptxBuffer } from './pptxGenerator.ts';
@@ -479,6 +480,41 @@ router.post('/ideas/:id/agents/evaluate', async (req: Request, res: Response) =>
     });
   } catch (error) {
     handleApiError(res, error, 'Failed to run agent evaluation');
+  }
+});
+
+/**
+ * POST /api/ideas/:id/agents/:agentRole/chat - 1-on-1 real-time discussion with a judge persona
+ */
+router.post('/ideas/:id/agents/:agentRole/chat', async (req: Request, res: Response) => {
+  const idea = ideasDatabase.get(req.params.id);
+  if (!idea) {
+    res.status(404).json({ success: false, error: 'Idea not found' });
+    return;
+  }
+
+  const { userMessage, chatHistory } = req.body;
+  if (!userMessage || typeof userMessage !== 'string') {
+    res.status(400).json({ success: false, error: 'userMessage string is required' });
+    return;
+  }
+
+  const apiKey = getApiKey(req);
+  try {
+    const judgeResponse = await chatWithJudgePersonaGemini(
+      idea,
+      req.params.agentRole,
+      userMessage,
+      chatHistory || [],
+      apiKey
+    );
+
+    res.json({
+      success: true,
+      response: judgeResponse,
+    });
+  } catch (error) {
+    handleApiError(res, error, 'Failed to generate judge response');
   }
 });
 
