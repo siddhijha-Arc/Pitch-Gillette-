@@ -37,17 +37,17 @@ export const DynamicImprovementView: React.FC<DynamicImprovementViewProps> = ({
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
               <GitCompare className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-tight font-sans">
+            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-tight font-sans">
               Pitch Evolution & Diff
             </h1>
           </div>
-          <p className="text-sm sm:text-base text-[#5e6573] dark:text-[#84849a] mt-1 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#5e6573] mt-1 font-normal leading-relaxed">
             Compare raw concept against de-risked proposal and audit resolved risks.
           </p>
         </div>
@@ -73,49 +73,49 @@ export const DynamicImprovementView: React.FC<DynamicImprovementViewProps> = ({
 
       {/* Delta Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
               Iteration
             </span>
-            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] dark:text-white mt-1 block">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] mt-1 block">
               Version {idea.currentVersion}
             </span>
-            <span className="text-xs sm:text-sm text-[#5e6573] dark:text-[#84849a] block mt-1">
+            <span className="text-xs sm:text-sm text-[#5e6573] block mt-1">
               {versions.length} total snapshots
             </span>
           </div>
-          <div className="w-12 h-12 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+          <div className="w-12 h-12 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
             <GitCompare className="h-6 w-6" />
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
               Readiness Score
             </span>
             <div className="flex items-center gap-2.5 mt-1">
-              <span className="text-3xl sm:text-4xl font-bold font-mono text-[#0e704a] dark:text-[#34d399]">
+              <span className="text-3xl sm:text-4xl font-bold font-mono text-[#0e704a]">
                 {idea.overallReadinessScore}%
               </span>
-              <span className="text-xs sm:text-sm font-bold font-mono px-2.5 py-1 rounded-full bg-[#c1f6e0]/60 dark:bg-[#10b981]/20 text-[#0e704a] dark:text-[#34d399]">
+              <span className="text-xs sm:text-sm font-bold font-mono px-2.5 py-1 rounded-full bg-[#c1f6e0]/60 text-[#0e704a]">
                 +{delta} pts
               </span>
             </div>
-            <span className="text-xs sm:text-sm text-[#5e6573] dark:text-[#84849a] block mt-1">Venture readiness</span>
+            <span className="text-xs sm:text-sm text-[#5e6573] block mt-1">Venture readiness</span>
           </div>
-          <div className="w-12 h-12 rounded-full bg-[#c1f6e0] dark:bg-[#10b981]/20 flex items-center justify-center text-[#0e704a] dark:text-[#34d399]">
+          <div className="w-12 h-12 rounded-full bg-[#c1f6e0] flex items-center justify-center text-[#0e704a]">
             <TrendingUp className="h-6 w-6" />
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] flex items-center justify-between shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
           <div>
-            <span className="text-xs font-bold text-[#7c8397] dark:text-[#84849a] uppercase tracking-wider block font-mono">
+            <span className="text-xs font-bold text-[#7c8397] uppercase tracking-wider block font-mono">
               Risk Mitigation
             </span>
-            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] dark:text-white mt-1 block">
+            <span className="text-3xl sm:text-4xl font-bold font-mono text-[#1f1f47] mt-1 block">
               {resolvedGaps.length} / {idea.gaps.length}
             </span>
             <span className="text-[11px] text-[#5e6573] block mt-0.5">

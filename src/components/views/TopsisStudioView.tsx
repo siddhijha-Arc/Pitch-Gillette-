@@ -91,12 +91,12 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
   return (
     <div className="relative space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-tight font-sans">
+          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-tight font-sans">
             TOPSIS Multi-Criteria Decision Studio
           </h1>
-          <p className="text-sm sm:text-base text-[#6c7693] dark:text-[#84849a] mt-1 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#6c7693] mt-1 font-normal leading-relaxed">
             Deterministic ranking based on Euclidean distance to Ideal Best (A+) and Ideal Worst (A-).
           </p>
         </div>
@@ -106,8 +106,8 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
             onClick={() => setShowMatrixTable(!showMatrixTable)}
             className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors flex items-center gap-2 ${
               showMatrixTable
-                ? 'bg-[#1f1f47] text-white border-[#1f1f47] dark:bg-[#576cdb] dark:border-[#576cdb]'
-                : 'bg-white dark:bg-[#1a1d29] text-[#1f1f47] dark:text-white border-[#eaedf6] dark:border-[#2a2f42] hover:bg-[#f9f9fb] dark:hover:bg-[#202538]'
+                ? 'bg-[#1f1f47] text-white border-[#1f1f47]'
+                : 'bg-white text-[#1f1f47] border-[#eaedf6] hover:bg-[#f9f9fb]'
             }`}
           >
             <Table2 className="h-4 w-4 text-[#576cdb]" />
@@ -135,37 +135,37 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
       </div>
 
       {/* Criteria Weight Tuning Console */}
-      <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 sm:p-8 space-y-5 shadow-[rgba(73,46,107,0.06)_0px_2px_8px]">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
+      <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-8 space-y-5 shadow-[rgba(73,46,107,0.06)_0px_2px_8px]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaedf6] pb-4">
           <div className="flex items-center gap-2.5">
             <Calculator className="h-5 w-5 text-[#576cdb]" />
-            <h2 className="text-base sm:text-lg font-semibold text-[#1f1f47] dark:text-white font-sans">Criteria Weights (w_j)</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-[#1f1f47] font-sans">Criteria Weights (w_j)</h2>
           </div>
 
           {/* Strategy Presets */}
           <div className="flex items-center gap-2 text-xs sm:text-sm font-sans flex-wrap">
-            <span className="text-[#6c7693] dark:text-[#84849a] mr-1 font-mono">Presets:</span>
+            <span className="text-[#6c7693] mr-1 font-mono">Presets:</span>
             <button
               onClick={() => applyPreset('GROWTH')}
-              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] dark:bg-[#1f2433] hover:bg-[#d6dbf5]/50 text-[#1f1f47] dark:text-white text-xs sm:text-sm font-medium border border-[#eaedf6] dark:border-[#2a2f42]"
+              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] hover:bg-[#d6dbf5]/50 text-[#1f1f47] text-xs sm:text-sm font-medium border border-[#eaedf6]"
             >
               VC Growth
             </button>
             <button
               onClick={() => applyPreset('LEAN')}
-              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] dark:bg-[#1f2433] hover:bg-[#c1f6e0]/50 text-[#1f1f47] dark:text-white text-xs sm:text-sm font-medium border border-[#eaedf6] dark:border-[#2a2f42]"
+              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] hover:bg-[#c1f6e0]/50 text-[#1f1f47] text-xs sm:text-sm font-medium border border-[#eaedf6]"
             >
               Lean / Capital
             </button>
             <button
               onClick={() => applyPreset('SPEED')}
-              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] dark:bg-[#1f2433] hover:bg-[#ffedd5]/50 text-[#1f1f47] dark:text-white text-xs sm:text-sm font-medium border border-[#eaedf6] dark:border-[#2a2f42]"
+              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] hover:bg-[#ffedd5]/50 text-[#1f1f47] text-xs sm:text-sm font-medium border border-[#eaedf6]"
             >
               Fast MVP
             </button>
             <button
               onClick={() => applyPreset('EQUAL')}
-              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] dark:bg-[#1f2433] hover:bg-[#d6dbf5]/50 text-[#1f1f47] dark:text-white text-xs sm:text-sm font-medium border border-[#eaedf6] dark:border-[#2a2f42]"
+              className="px-3.5 py-1.5 rounded-full bg-[#f9f9fb] hover:bg-[#d6dbf5]/50 text-[#1f1f47] text-xs sm:text-sm font-medium border border-[#eaedf6]"
             >
               Equal (20%)
             </button>
@@ -198,9 +198,9 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
 
       {/* Decision Matrix Table */}
       {showMatrixTable && (
-        <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 space-y-4 overflow-x-auto shadow-[rgba(73,46,107,0.06)_0px_2px_8px]">
+        <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 overflow-x-auto shadow-[rgba(73,46,107,0.06)_0px_2px_8px]">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono">
+            <h3 className="text-sm font-semibold text-[#1f1f47] uppercase tracking-wider font-mono">
               Normalized Vector Decision Matrix & Euclidean Distances
             </h3>
             <span className="text-xs sm:text-sm text-[#576cdb] font-mono">
@@ -210,7 +210,7 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
 
           <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="border-b border-[#eaedf6] dark:border-[#1e2332] text-[#6c7693] dark:text-[#84849a] font-mono text-xs">
+              <tr className="border-b border-[#eaedf6] text-[#6c7693] font-mono text-xs">
                 <th className="py-3 px-3">Solution</th>
                 <th className="py-3 px-2 text-right">Feasibility (r_1)</th>
                 <th className="py-3 px-2 text-right">Capital Eff (r_2)</th>
@@ -219,13 +219,13 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
                 <th className="py-3 px-2 text-right">Speed (r_5)</th>
                 <th className="py-3 px-2 text-right text-[#f25a5a]">Dist to Best (S+)</th>
                 <th className="py-3 px-2 text-right text-[#576cdb]">Dist to Worst (S-)</th>
-                <th className="py-3 px-3 text-right text-[#1f1f47] dark:text-white font-bold">TOPSIS Score</th>
+                <th className="py-3 px-3 text-right text-[#1f1f47] font-bold">TOPSIS Score</th>
               </tr>
             </thead>
             <tbody>
               {solutions.map((sol) => (
-                <tr key={sol.id} className="hover:bg-[#f9f9fb] dark:hover:bg-[#1e2436] border-b border-[#f1f3f9] dark:border-[#1e2332]/50">
-                  <td className="py-3.5 px-3 font-sans font-medium text-[#1f1f47] dark:text-white max-w-[220px] truncate">
+                <tr key={sol.id} className="hover:bg-[#f9f9fb] border-b border-[#f1f3f9]">
+                  <td className="py-3.5 px-3 font-sans font-medium text-[#1f1f47] max-w-[220px] truncate">
                     #{sol.topsisRank} {sol.title}
                   </td>
                   <td className="py-3.5 px-2 text-right font-mono">{sol.criteriaScores.feasibility}/10</td>
@@ -235,7 +235,7 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
                   <td className="py-3.5 px-2 text-right font-mono">{sol.criteriaScores.speedToImplement}/10</td>
                   <td className="py-3.5 px-2 text-right text-[#f25a5a] font-mono">{sol.distanceToIdealBest}</td>
                   <td className="py-3.5 px-2 text-right text-[#576cdb] font-mono">{sol.distanceToIdealWorst}</td>
-                  <td className="py-3.5 px-3 text-right font-bold text-[#1f1f47] dark:text-white font-mono">
+                  <td className="py-3.5 px-3 text-right font-bold text-[#1f1f47] font-mono">
                     {sol.topsisScore.toFixed(4)}
                   </td>
                 </tr>
@@ -247,7 +247,7 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
 
       {/* Bar-Shaped Solution Cards (Screenshot Header & Title Typography) */}
       <div className="space-y-4">
-        <h2 className="text-sm font-bold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider font-mono">
+        <h2 className="text-sm font-bold text-[#6c7693] uppercase tracking-wider font-mono">
           Ranked Strategic Solutions ({solutions.length})
         </h2>
 
@@ -262,19 +262,19 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
                 onClick={() => handleCardClick(solution)}
                 className={`p-6 rounded-2xl cursor-pointer transition-all duration-200 space-y-4 relative ${
                   isSelected
-                    ? 'bg-[#d6dbf5]/20 dark:bg-[#576cdb]/20 border-2 border-[#576cdb] shadow-[0_4px_16px_rgba(87,108,219,0.15)] ring-2 ring-[#576cdb]/20'
+                    ? 'bg-[#d6dbf5]/20 border-2 border-[#576cdb] shadow-[0_4px_16px_rgba(87,108,219,0.15)] ring-2 ring-[#576cdb]/20'
                     : isWinner
-                    ? 'bg-white dark:bg-[#171a24] border-2 border-[#576cdb] shadow-sm hover:shadow'
-                    : 'bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] hover:border-[#d1d6e1] dark:hover:border-[#2a2f42] hover:shadow-sm'
+                    ? 'bg-white border-2 border-[#576cdb] shadow-sm hover:shadow'
+                    : 'bg-white border border-[#eaedf6] hover:border-[#d1d6e1] hover:shadow-sm'
                 }`}
               >
                 {/* Header Row: Rank Badge + Score & Target on Right */}
-                <div className="flex items-center justify-between gap-2 border-b border-[#f1f3f9] dark:border-[#1e2332] pb-3.5">
+                <div className="flex items-center justify-between gap-2 border-b border-[#f1f3f9] pb-3.5">
                   <span
                     className={`text-xs font-bold px-3.5 py-1 rounded-full font-mono ${
                       isWinner
                         ? 'bg-[#576cdb] text-white'
-                        : 'bg-[#f9f9fb] dark:bg-[#1f2433] text-[#1f1f47] dark:text-white border border-[#eaedf6] dark:border-[#2a2f42]'
+                        : 'bg-[#f9f9fb] text-[#1f1f47] border border-[#eaedf6]'
                     }`}
                   >
                     Rank #{solution.topsisRank}
@@ -288,7 +288,7 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
                 </div>
 
                 {/* Title Typography matching Screenshot: Medium weight, deep indigo, -0.02em tracking */}
-                <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] dark:text-white leading-snug tracking-[-0.02em] font-sans pt-1">
+                <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] leading-snug tracking-[-0.02em] font-sans pt-1">
                   {solution.title}
                 </h3>
               </div>
@@ -304,57 +304,57 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
           <div className="absolute inset-0" onClick={closeDrawer} />
 
           {/* Modal Content Box */}
-          <div className="relative w-full max-w-lg bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] shadow-2xl p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-lg bg-white rounded-2xl border border-[#eaedf6] shadow-2xl p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-200">
             {/* Header: Badges & Close Button */}
-            <div className="flex items-center justify-between border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
+            <div className="flex items-center justify-between border-b border-[#eaedf6] pb-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold font-mono px-3.5 py-1 rounded-full bg-[#576cdb] text-white">
                   Rank #{activeSolution.topsisRank} Candidate
                 </span>
-                <span className="text-xs font-bold font-mono px-3 py-1 rounded-md bg-[#d6dbf5] dark:bg-[#1f2433] text-[#1f1f47] dark:text-white">
+                <span className="text-xs font-bold font-mono px-3 py-1 rounded-md bg-[#d6dbf5] text-[#1f1f47]">
                   C* Score: {activeSolution.topsisScore.toFixed(4)}
                 </span>
               </div>
 
               <button
                 onClick={closeDrawer}
-                className="w-9 h-9 rounded-full border border-[#eaedf6] dark:border-[#2a2f42] bg-white dark:bg-[#1a1d29] hover:bg-[#f9f9fb] dark:hover:bg-[#202538] flex items-center justify-center text-[#7c8397] hover:text-[#1f1f47] dark:hover:text-white transition-colors"
+                className="w-9 h-9 rounded-full border border-[#eaedf6] bg-white hover:bg-[#f9f9fb] flex items-center justify-center text-[#7c8397] hover:text-[#1f1f47] transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {/* Solution Title */}
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f47] dark:text-white leading-tight tracking-[-0.025em]">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f47] leading-tight tracking-[-0.025em]">
               {activeSolution.title}
             </h2>
 
             {/* Target Problem */}
-            <div className="text-sm text-[#6c7693] dark:text-[#84849a] font-mono">
-              Target Problem: <strong className="text-[#1f1f47] dark:text-white">{activeSolution.problemTitle}</strong>
+            <div className="text-sm text-[#6c7693] font-mono">
+              Target Problem: <strong className="text-[#1f1f47]">{activeSolution.problemTitle}</strong>
             </div>
 
             {/* Strategy Summary Box */}
-            <div className="p-5 bg-[#f9f9fb] dark:bg-[#12141c] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] space-y-2">
-              <span className="text-xs font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono block">
+            <div className="p-5 bg-[#f9f9fb] rounded-2xl border border-[#eaedf6] space-y-2">
+              <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
                 Strategic Implementation
               </span>
-              <p className="text-sm sm:text-base text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed font-normal">
+              <p className="text-sm sm:text-base text-[#3d3d5c] leading-relaxed font-normal">
                 {activeSolution.strategySummary}
               </p>
             </div>
 
             {/* Trade-offs */}
             {activeSolution.tradeoffs && (
-              <div className="p-5 bg-[#ffedd5]/50 dark:bg-[#ea580c]/10 border border-[#fed7aa] dark:border-[#ea580c]/30 rounded-2xl text-sm space-y-1">
+              <div className="p-5 bg-[#ffedd5]/50 border border-[#fed7aa] rounded-2xl text-sm space-y-1">
                 <span className="font-bold text-[#ea580c] block font-mono">Strategic Trade-off Accepted</span>
-                <p className="text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed">{activeSolution.tradeoffs}</p>
+                <p className="text-[#3d3d5c] leading-relaxed">{activeSolution.tradeoffs}</p>
               </div>
             )}
 
             {/* 5 Criteria Scores Breakdown */}
             <div className="space-y-3 pt-2">
-              <span className="text-xs font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono block">
+              <span className="text-xs font-bold text-[#1f1f47] uppercase tracking-wider font-mono block">
                 Multi-Criteria Evaluation Scores
               </span>
 
@@ -364,9 +364,9 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
                   return (
                     <div
                       key={crit.key}
-                      className="p-3.5 rounded-xl bg-[#f9f9fb] dark:bg-[#12141c] border border-[#eaedf6] dark:border-[#1e2332] space-y-1"
+                      className="p-3.5 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-1"
                     >
-                      <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-medium block truncate">
+                      <span className="text-xs text-[#6c7693] font-medium block truncate">
                         {crit.name}
                       </span>
                       <span className="text-lg font-bold font-mono text-[#576cdb]">
@@ -379,7 +379,7 @@ export const TopsisStudioView: React.FC<TopsisStudioViewProps> = ({
             </div>
 
             {/* Drawer Footer ID & Distances */}
-            <div className="pt-4 border-t border-[#eaedf6] dark:border-[#1e2332] flex items-center justify-between text-xs sm:text-sm text-[#84849a] font-mono">
+            <div className="pt-4 border-t border-[#eaedf6] flex items-center justify-between text-xs sm:text-sm text-[#84849a] font-mono">
               <span>Dist S+: {activeSolution.distanceToIdealBest}</span>
               <span>Dist S-: {activeSolution.distanceToIdealWorst}</span>
             </div>

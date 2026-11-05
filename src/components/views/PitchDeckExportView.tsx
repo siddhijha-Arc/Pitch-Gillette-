@@ -47,17 +47,17 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] dark:bg-[#576cdb]/20 flex items-center justify-center text-[#38489e] dark:text-[#576cdb]">
+            <div className="w-9 h-9 rounded-full bg-[#c1c9f6] flex items-center justify-center text-[#38489e]">
               <Presentation className="h-5 w-5" />
             </div>
-            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-tight font-sans">
+            <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-tight font-sans">
               Investor Pitch Deck
             </h1>
           </div>
-          <p className="text-sm sm:text-base text-[#5e6573] dark:text-[#84849a] mt-1 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#5e6573] mt-1 font-normal leading-relaxed">
             10-slide deck exportable directly to native Microsoft PowerPoint (.pptx).
           </p>
         </div>
@@ -66,7 +66,7 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
           <button
             onClick={onGenerateDeck}
             disabled={isLoading}
-            className="px-5 py-2.5 rounded-full bg-white dark:bg-[#1a1d29] hover:bg-slate-50 dark:hover:bg-[#202538] border border-[#eaedf6] dark:border-[#2a2f42] text-xs sm:text-sm font-semibold text-[#1f1f47] dark:text-white transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-[#eaedf6] text-xs sm:text-sm font-semibold text-[#1f1f47] transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {isLoading ? (
               <>
@@ -93,8 +93,8 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
       </div>
 
       {/* Theme Selector Console */}
-      <div className="rounded-2xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
-        <div className="flex items-center gap-2.5 text-sm sm:text-base text-[#1f1f47] dark:text-white font-semibold">
+      <div className="rounded-2xl bg-white border border-[#eaedf6] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-[0_2px_8px_rgba(73,46,107,0.03)]">
+        <div className="flex items-center gap-2.5 text-sm sm:text-base text-[#1f1f47] font-semibold">
           <Palette className="h-5 w-5 text-[#576cdb]" />
           <span>PowerPoint Theme:</span>
         </div>
@@ -107,7 +107,7 @@ export const PitchDeckExportView: React.FC<PitchDeckExportViewProps> = ({
               className={`px-4 py-2 rounded-full text-xs sm:text-sm font-medium border transition-all ${
                 selectedTheme === theme.id
                   ? 'bg-[#576cdb] text-white border-[#576cdb] shadow-sm'
-                  : 'bg-white dark:bg-[#1f2433] text-[#5e6573] dark:text-[#84849a] border-[#eaedf6] dark:border-[#2a2f42] hover:text-[#1f1f47] dark:hover:text-white'
+                  : 'bg-white text-[#5e6573] border-[#eaedf6] hover:text-[#1f1f47]'
               }`}
             >
               {theme.name}

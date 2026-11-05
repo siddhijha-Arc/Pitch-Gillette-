@@ -4,6 +4,7 @@
  * Consolidates evaluation insights into persona-based reviewer cards,
  * removes duplicate upper sections, and introduces a minimal pop-up modal
  * featuring real-time 1-on-1 persona discussion with each expert judge.
+ * Pure Light Mode.
  */
 
 import React, { useState } from 'react';
@@ -47,8 +48,8 @@ const AGENT_CONFIG: Record<
 > = {
   VC_PARTNER: {
     icon: DollarSign,
-    bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
-    text: 'text-[#4f46e5] dark:text-[#818cf8]',
+    bg: 'bg-[#e0e7ff]',
+    text: 'text-[#4f46e5]',
     roleTitle: 'General Partner, Tier-1 VC',
     quickPrompts: [
       'What TAM & market moat metric would upgrade your score to 10/10?',
@@ -58,8 +59,8 @@ const AGENT_CONFIG: Record<
   },
   ICP_CUSTOMER: {
     icon: UserCheck,
-    bg: 'bg-[#ecfdf5] dark:bg-[#10b981]/20',
-    text: 'text-[#059669] dark:text-[#34d399]',
+    bg: 'bg-[#ecfdf5]',
+    text: 'text-[#059669]',
     roleTitle: 'Chief Medical Officer, Regional Hospital System',
     quickPrompts: [
       'How can we prove zero clinical liability to your hospital board?',
@@ -69,8 +70,8 @@ const AGENT_CONFIG: Record<
   },
   TECH_ARCHITECT: {
     icon: Cpu,
-    bg: 'bg-[#fef2f2] dark:bg-[#ef4444]/20',
-    text: 'text-[#dc2626] dark:text-[#f87171]',
+    bg: 'bg-[#fef2f2]',
+    text: 'text-[#dc2626]',
     roleTitle: 'Veteran CTO & Systems Architect',
     quickPrompts: [
       'How do we guarantee 99.99% uptime in low-connectivity ambulances?',
@@ -80,8 +81,8 @@ const AGENT_CONFIG: Record<
   },
   LEGAL_COUNSEL: {
     icon: Scale,
-    bg: 'bg-[#f3e8ff] dark:bg-[#a855f7]/20',
-    text: 'text-[#7c3aed] dark:text-[#c084fc]',
+    bg: 'bg-[#f3e8ff]',
+    text: 'text-[#7c3aed]',
     roleTitle: 'Healthcare Regulatory & Compliance Attorney',
     quickPrompts: [
       'How do we structure our corporate entity to satisfy state medical boards?',
@@ -91,8 +92,8 @@ const AGENT_CONFIG: Record<
   },
   FINANCIAL_ANALYST: {
     icon: TrendingUp,
-    bg: 'bg-[#f0fdf4] dark:bg-[#22c55e]/20',
-    text: 'text-[#16a34a] dark:text-[#4ade80]',
+    bg: 'bg-[#f0fdf4]',
+    text: 'text-[#16a34a]',
     roleTitle: 'CFO & Unit Economics Specialist',
     quickPrompts: [
       'How can we improve our gross margin profile above 70%?',
@@ -102,8 +103,8 @@ const AGENT_CONFIG: Record<
   },
   HACKATHON_JUDGE: {
     icon: Award,
-    bg: 'bg-[#fffbeb] dark:bg-[#f59e0b]/20',
-    text: 'text-[#d97706] dark:text-[#fbbf24]',
+    bg: 'bg-[#fffbeb]',
+    text: 'text-[#d97706]',
     roleTitle: 'Product Builder & Founder',
     quickPrompts: [
       'What is the single core feature we should focus on for our 30-day MVP?',
@@ -140,11 +141,11 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
   const getVerdictBadge = (verdict: string) => {
     switch (verdict) {
       case 'STRONG_BUY':
-        return 'bg-[#ecfdf5] dark:bg-[#10b981]/20 text-[#059669] dark:text-[#34d399] border-[#a7f3d0] dark:border-[#10b981]/30';
+        return 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]';
       case 'CONDITIONAL_PASS':
-        return 'bg-[#fffbeb] dark:bg-[#f59e0b]/20 text-[#d97706] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#f59e0b]/30';
+        return 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]';
       default:
-        return 'bg-[#fef2f2] dark:bg-[#ef4444]/20 text-[#dc2626] dark:text-[#f87171] border-[#fecaca] dark:border-[#ef4444]/30';
+        return 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
     }
   };
 
@@ -247,15 +248,15 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* 1. Header with Run Deliberation Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] dark:border-[#1e2332] pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6">
         <div>
           <span className="text-xs font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
             Orchestrated Expert Committee
           </span>
-          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] dark:text-white tracking-[-0.03em] font-sans">
+          <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-[-0.03em] font-sans">
             Evaluation Council
           </h1>
-          <p className="text-sm sm:text-base text-[#6c7693] dark:text-[#84849a] mt-1.5 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#6c7693] mt-1.5 font-normal leading-relaxed">
             Autonomous multi-agent scrutiny with variance analysis and real-time persona discussions.
           </p>
         </div>
@@ -279,159 +280,13 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         </button>
       </div>
 
-      {/* 2. Evaluation Summary (Prominent KPI Bar) */}
-      {report && (
-        <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-7 shadow-[rgba(73,46,107,0.04)_0px_3px_16px]">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#eaedf6] dark:divide-[#1e2332]">
-            {/* Overall Score */}
-            <div className="space-y-1.5 pt-3 md:pt-0">
-              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
-                Mean Score (μ)
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] dark:text-white tracking-tight">
-                  {report.meanScore}
-                </span>
-                <span className="text-sm text-[#6c7693] dark:text-[#84849a] font-mono">/ 10.0</span>
-              </div>
-            </div>
-
-            {/* Number of Reviewers */}
-            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
-                Reviewers
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] dark:text-white tracking-tight">
-                  {critiques.length}
-                </span>
-                <span className="text-xs text-[#576cdb] font-semibold">Specialized AI</span>
-              </div>
-            </div>
-
-            {/* Score Gap (Variance) */}
-            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
-                Score Variance (σ²)
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#576cdb] tracking-tight">
-                  {report.variance}
-                </span>
-                <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-medium">Spread</span>
-              </div>
-            </div>
-
-            {/* Confidence / Polarizing Metric */}
-            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6">
-              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
-                Std Dev (σ)
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className={`text-4xl sm:text-5xl font-light tracking-tight ${report.isPolarizing ? 'text-[#d97706]' : 'text-[#059669] dark:text-[#34d399]'}`}>
-                  {report.standardDeviation}
-                </span>
-                <span className="text-xs font-medium text-[#6c7693] dark:text-[#84849a]">
-                  {report.isPolarizing ? 'Polarizing' : 'Aligned'}
-                </span>
-              </div>
-            </div>
-
-            {/* Verdict Status */}
-            <div className="space-y-1.5 pt-3 md:pt-0 md:pl-6 flex flex-col justify-center">
-              <span className="text-xs font-semibold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider block">
-                Consensus Verdict
-              </span>
-              <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold font-mono w-fit mt-1 border ${
-                report.isPolarizing ? 'bg-[#fffbeb] dark:bg-[#f59e0b]/20 text-[#d97706] dark:text-[#fbbf24] border-[#fde68a] dark:border-[#f59e0b]/30' : 'bg-[#ecfdf5] dark:bg-[#10b981]/20 text-[#059669] dark:text-[#34d399] border-[#a7f3d0] dark:border-[#10b981]/30'
-              }`}>
-                {report.consensusVerdict.replace(/_/g, ' ')}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-7 pt-6 border-t border-[#eaedf6] dark:border-[#1e2332] grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-            <div className="text-sm sm:text-base text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed bg-[#f9f9fb] dark:bg-[#12141c] p-5 rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] flex flex-col justify-center">
-              <div>
-                <span className="font-semibold text-base text-[#1f1f47] dark:text-white block mb-1.5">Committee Synthesis</span>
-                <p className="text-sm sm:text-base leading-relaxed">{report.synthesisSummary}</p>
-              </div>
-            </div>
-
-            {report.outlierAgents.length > 0 ? (
-              <div className="p-5 rounded-2xl bg-[#fffbeb] dark:bg-[#ea580c]/10 border border-[#fde68a] dark:border-[#ea580c]/30 text-sm text-[#92400e] dark:text-[#f97316] space-y-2 flex flex-col justify-center">
-                <span className="font-semibold flex items-center gap-2 font-mono text-xs sm:text-sm">
-                  <AlertTriangle className="h-4.5 w-4.5 text-[#d97706] dark:text-[#ea580c] shrink-0" />
-                  Statistically Significant Outlier Detected (|x - μ| &gt; 1.3σ)
-                </span>
-                {report.outlierAgents.map((outlier, idx) => (
-                  <p key={idx} className="pl-6 text-[#78350f] dark:text-[#fdba74] text-xs sm:text-sm">
-                    • {outlier.reason}
-                  </p>
-                ))}
-              </div>
-            ) : (
-              <div className="p-5 rounded-2xl bg-[#ecfdf5] dark:bg-[#10b981]/10 border border-[#a7f3d0] dark:border-[#10b981]/30 text-sm text-[#065f46] dark:text-[#34d399] flex items-center gap-2.5">
-                <Award className="h-5 w-5 text-[#059669] dark:text-[#34d399] shrink-0" />
-                <span className="text-sm sm:text-base">No statistically significant outlier detected (|x - μ| ≤ 1.3σ). All 6 reviewers maintain statistical alignment.</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 3. Dialectical Disagreements Bar */}
-      {report && report.dialecticalDisagreements && report.dialecticalDisagreements.length > 0 && (
-        <div className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_2px_8px]">
-          <div className="flex items-center gap-2.5 border-b border-[#eaedf6] dark:border-[#1e2332] pb-3.5">
-            <Swords className="h-5 w-5 text-[#576cdb]" />
-            <h3 className="text-base font-semibold text-[#1f1f47] dark:text-white font-sans">
-              Dialectical Disagreements & Strategic Resolutions
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {report.dialecticalDisagreements.map((clash, idx) => (
-              <div key={idx} className="p-5 rounded-xl bg-[#f9f9fb] dark:bg-[#12141c] border border-[#eaedf6] dark:border-[#1e2332] space-y-3 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs sm:text-sm font-semibold text-[#1f1f47] dark:text-white font-mono">
-                      Dimension: {clash.dimension}
-                    </span>
-                    <span className="text-xs font-mono px-3 py-1 rounded-full bg-[#e0e7ff] dark:bg-[#576cdb]/20 text-[#4f46e5] dark:text-[#818cf8]">
-                      Polar Tension
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm mb-3">
-                    <div className="p-3 rounded-lg bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] space-y-1">
-                      <span className="font-semibold text-[#059669] dark:text-[#34d399] block text-xs">Bull: {clash.agentA.agent}</span>
-                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] text-xs leading-snug">{clash.agentA.stance}</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] space-y-1">
-                      <span className="font-semibold text-[#dc2626] dark:text-[#f87171] block text-xs">Bear: {clash.agentB.agent}</span>
-                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] text-xs leading-snug">{clash.agentB.stance}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-[#f0f4ff] dark:bg-[#576cdb]/10 border border-[#c1c9f6] dark:border-[#576cdb]/30 text-xs sm:text-sm text-[#1f1f47] dark:text-white">
-                  <span className="font-semibold text-[#576cdb] block mb-1 text-xs">Strategic Resolution:</span>
-                  <p className="text-xs text-[#3d3d5c] dark:text-[#c4c8d5] leading-relaxed">{clash.strategicResolution}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 4. Reviewer Perspectives Grid (Persona-Based Cards) */}
+      {/* 2. Reviewer Perspectives Grid (Persona-Based Cards) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm sm:text-base font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono">
+          <h2 className="text-sm sm:text-base font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
             Reviewer Perspectives ({critiques.length})
           </h2>
-          <span className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a]">
+          <span className="text-xs sm:text-sm text-[#6c7693]">
             Click any reviewer card to open 1-on-1 persona discussion pop-up
           </span>
         </div>
@@ -440,8 +295,8 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
           {critiques.map((critique) => {
             const config = AGENT_CONFIG[critique.agent] || {
               icon: Users,
-              bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
-              text: 'text-[#4f46e5] dark:text-[#818cf8]',
+              bg: 'bg-[#e0e7ff]',
+              text: 'text-[#4f46e5]',
               roleTitle: critique.title,
               quickPrompts: [],
             };
@@ -452,7 +307,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
               <div
                 key={critique.agent}
                 onClick={() => openJudgeModal(critique)}
-                className="bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#576cdb] dark:hover:border-[#576cdb] transition-all cursor-pointer flex flex-col justify-between group"
+                className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#576cdb] transition-all cursor-pointer flex flex-col justify-between group"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-start justify-between gap-3">
@@ -461,20 +316,20 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                         <Icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] dark:text-white tracking-[-0.02em] font-sans">
+                        <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] tracking-[-0.02em] font-sans">
                           {critique.agentName}
                         </h3>
-                        <span className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a] block font-mono">
+                        <span className="text-xs sm:text-sm text-[#6c7693] block font-mono">
                           {config.roleTitle}
                         </span>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-2xl sm:text-3xl font-light font-mono text-[#1f1f47] dark:text-white">
+                      <span className="text-2xl sm:text-3xl font-light font-mono text-[#1f1f47]">
                         {critique.overallScore}
                       </span>
-                      <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-mono">/10</span>
+                      <span className="text-xs text-[#6c7693] font-mono">/10</span>
                     </div>
                   </div>
 
@@ -482,26 +337,26 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                     <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
                       {critique.verdict.replace(/_/g, ' ')}
                     </span>
-                    <span className="text-xs text-[#6c7693] dark:text-[#84849a] font-mono">{critique.agent}</span>
+                    <span className="text-xs text-[#6c7693] font-mono">{critique.agent}</span>
                   </div>
 
                   {/* Quoted Summary Stance */}
-                  <p className="text-xs sm:text-sm text-[#3d3d5c] dark:text-[#c4c8d5] italic bg-[#f9f9fb] dark:bg-[#12141c] p-4 rounded-xl border border-[#eaedf6] dark:border-[#1e2332] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-[#3d3d5c] italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6] leading-relaxed">
                     "{critique.summaryQuote}"
                   </p>
 
                   {/* Integrated Bullish & Bearish Snippets */}
                   <div className="space-y-2 pt-1 text-xs sm:text-sm">
-                    <div className="flex items-start gap-2 text-[#059669] dark:text-[#34d399]">
+                    <div className="flex items-start gap-2 text-[#059669]">
                       <span className="font-semibold shrink-0 font-mono">🟢 Strength:</span>
-                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] line-clamp-2 leading-relaxed">
+                      <p className="text-[#3d3d5c] line-clamp-2 leading-relaxed">
                         {critique.bullishArgument}
                       </p>
                     </div>
 
-                    <div className="flex items-start gap-2 text-[#dc2626] dark:text-[#f87171]">
+                    <div className="flex items-start gap-2 text-[#dc2626]">
                       <span className="font-semibold shrink-0 font-mono">🔴 Risk:</span>
-                      <p className="text-[#3d3d5c] dark:text-[#c4c8d5] line-clamp-2 leading-relaxed">
+                      <p className="text-[#3d3d5c] line-clamp-2 leading-relaxed">
                         {critique.bearishArgument}
                       </p>
                     </div>
@@ -509,8 +364,8 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                 </div>
 
                 {/* Card Footer Call to Action Button */}
-                <div className="pt-4 border-t border-[#eaedf6] dark:border-[#1e2332]">
-                  <button className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] dark:bg-[#1a1d29] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] dark:border-[#2a2f42] group-hover:border-[#576cdb]">
+                <div className="pt-4 border-t border-[#eaedf6]">
+                  <button className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] group-hover:border-[#576cdb]">
                     <MessageSquare className="h-4 w-4" />
                     <span>Discuss with {critique.agentName.split(' ')[0]} & Full Eval</span>
                     <ChevronRight className="h-4 w-4" />
@@ -529,13 +384,13 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
           <div className="absolute inset-0" onClick={closeJudgeModal} />
 
           {/* Pop-up Window */}
-          <div className="relative w-full max-w-4xl bg-white dark:bg-[#171a24] rounded-2xl border border-[#eaedf6] dark:border-[#1e2332] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-4xl bg-white rounded-2xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
             {/* Modal Header */}
             {(() => {
               const config = AGENT_CONFIG[selectedCritique.agent] || {
                 icon: Users,
-                bg: 'bg-[#e0e7ff] dark:bg-[#4f46e5]/20',
-                text: 'text-[#4f46e5] dark:text-[#818cf8]',
+                bg: 'bg-[#e0e7ff]',
+                text: 'text-[#4f46e5]',
                 roleTitle: selectedCritique.title,
                 quickPrompts: [],
               };
@@ -545,21 +400,21 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
               return (
                 <>
-                  <div className="p-6 border-b border-[#eaedf6] dark:border-[#1e2332] bg-[#f9f9fb] dark:bg-[#12141c] flex items-center justify-between gap-4">
+                  <div className="p-6 border-b border-[#eaedf6] bg-[#f9f9fb] flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                       <div className={`w-12 h-12 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0`}>
                         <Icon className="h-6 w-6" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] dark:text-white font-sans">
+                          <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] font-sans">
                             {selectedCritique.agentName}
                           </h2>
                           <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
                             {selectedCritique.verdict.replace(/_/g, ' ')}
                           </span>
                         </div>
-                        <p className="text-xs sm:text-sm text-[#6c7693] dark:text-[#84849a] font-mono mt-0.5">
+                        <p className="text-xs sm:text-sm text-[#6c7693] font-mono mt-0.5">
                           {config.roleTitle} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
                         </p>
                       </div>
@@ -567,46 +422,46 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
                     <button
                       onClick={closeJudgeModal}
-                      className="w-10 h-10 rounded-full border border-[#eaedf6] dark:border-[#2a2f42] bg-white dark:bg-[#1a1d29] hover:bg-[#eaedf6] dark:hover:bg-[#202538] flex items-center justify-center text-[#6c7693] dark:text-white transition-colors shrink-0"
+                      className="w-10 h-10 rounded-full border border-[#eaedf6] bg-white hover:bg-[#eaedf6] flex items-center justify-center text-[#6c7693] transition-colors shrink-0"
                     >
                       <X className="h-5 w-5" />
                     </button>
                   </div>
 
                   {/* Modal Content Split: Left (Full Evaluation Data) & Right (Real-Time Persona Discussion) */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] dark:divide-[#1e2332] overflow-y-auto flex-1">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] overflow-y-auto flex-1">
                     
                     {/* Left Pane: Detailed Evaluation Breakdown */}
                     <div className="p-6 space-y-6 overflow-y-auto">
                       <div className="space-y-2">
-                        <span className="text-xs font-bold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider font-mono">
+                        <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono">
                           Executive Stance Summary
                         </span>
-                        <p className="text-sm text-[#1f1f47] dark:text-white italic bg-[#f9f9fb] dark:bg-[#12141c] p-4 rounded-xl border border-[#eaedf6] dark:border-[#1e2332] leading-relaxed">
+                        <p className="text-sm text-[#1f1f47] italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6] leading-relaxed">
                           "{selectedCritique.summaryQuote}"
                         </p>
                       </div>
 
                       {/* Bullish & Bearish Analysis */}
                       <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-[#ecfdf5] dark:bg-[#10b981]/10 border border-[#a7f3d0] dark:border-[#10b981]/30 space-y-1.5">
-                          <span className="text-xs font-bold text-[#059669] dark:text-[#34d399] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <div className="p-4 rounded-xl bg-[#ecfdf5] border border-[#a7f3d0] space-y-1.5">
+                          <span className="text-xs font-bold text-[#059669] uppercase tracking-wider font-mono flex items-center gap-1.5">
                             🟢 Key Strength & Bullish Argument
                           </span>
-                          <p className="text-xs sm:text-sm text-[#065f46] dark:text-[#a7f3d0] leading-relaxed">
+                          <p className="text-xs sm:text-sm text-[#065f46] leading-relaxed">
                             {selectedCritique.bullishArgument}
                           </p>
                         </div>
 
-                        <div className="p-4 rounded-xl bg-[#fef2f2] dark:bg-[#ef4444]/10 border border-[#fecaca] dark:border-[#ef4444]/30 space-y-1.5">
-                          <span className="text-xs font-bold text-[#dc2626] dark:text-[#f87171] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                        <div className="p-4 rounded-xl bg-[#fef2f2] border border-[#fecaca] space-y-1.5">
+                          <span className="text-xs font-bold text-[#dc2626] uppercase tracking-wider font-mono flex items-center gap-1.5">
                             🔴 Critical Risk & Bearish Objection
                           </span>
-                          <p className="text-xs sm:text-sm text-[#991b1b] dark:text-[#fca5a5] leading-relaxed">
+                          <p className="text-xs sm:text-sm text-[#991b1b] leading-relaxed">
                             {selectedCritique.bearishArgument}
                           </p>
                           {selectedCritique.pivotsRecommended && selectedCritique.pivotsRecommended.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-[#fecaca] dark:border-[#ef4444]/20 text-xs font-medium text-[#b45309] dark:text-[#fbbf24]">
+                            <div className="mt-2 pt-2 border-t border-[#fecaca] text-xs font-medium text-[#b45309]">
                               <strong>Recommended Pivot:</strong> {selectedCritique.pivotsRecommended[0]}
                             </div>
                           )}
@@ -615,13 +470,13 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
                       {/* Dimension Scores Matrix */}
                       <div className="space-y-3">
-                        <span className="text-xs font-bold text-[#6c7693] dark:text-[#84849a] uppercase tracking-wider font-mono block">
+                        <span className="text-xs font-bold text-[#6c7693] uppercase tracking-wider font-mono block">
                           Evaluation Dimensions Breakdown
                         </span>
                         <div className="grid grid-cols-2 gap-2.5">
                           {Object.entries(selectedCritique.dimensionScores).map(([key, val]) => (
-                            <div key={key} className="p-3 rounded-xl bg-[#f9f9fb] dark:bg-[#12141c] border border-[#eaedf6] dark:border-[#1e2332] space-y-0.5">
-                              <span className="text-[11px] text-[#6c7693] dark:text-[#84849a] capitalize font-medium block truncate">
+                            <div key={key} className="p-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] space-y-0.5">
+                              <span className="text-[11px] text-[#6c7693] capitalize font-medium block truncate">
                                 {key.replace(/([A-Z])/g, ' $1').trim()}
                               </span>
                               <span className="text-base font-bold font-mono text-[#576cdb]">
@@ -634,16 +489,16 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                     </div>
 
                     {/* Right Pane: Live Real-Time 1-on-1 Persona Chat */}
-                    <div className="p-6 flex flex-col justify-between bg-[#fcfcfd] dark:bg-[#141720] space-y-4">
+                    <div className="p-6 flex flex-col justify-between bg-[#fcfcfd] space-y-4">
                       <div>
-                        <div className="flex items-center justify-between border-b border-[#eaedf6] dark:border-[#1e2332] pb-3 mb-3">
+                        <div className="flex items-center justify-between border-b border-[#eaedf6] pb-3 mb-3">
                           <div className="flex items-center gap-2">
                             <MessageSquare className="h-4 w-4 text-[#576cdb]" />
-                            <span className="text-xs sm:text-sm font-bold text-[#1f1f47] dark:text-white uppercase tracking-wider font-mono">
+                            <span className="text-xs sm:text-sm font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
                               Live Persona Discussion
                             </span>
                           </div>
-                          <span className="text-xs text-[#059669] dark:text-[#34d399] font-mono flex items-center gap-1">
+                          <span className="text-xs text-[#059669] font-mono flex items-center gap-1">
                             <span className="w-2 h-2 rounded-full bg-[#059669] animate-pulse" />
                             Active Persona
                           </span>
@@ -652,14 +507,14 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                         {/* Recommended Quick Question Chips */}
                         {config.quickPrompts.length > 0 && (
                           <div className="space-y-1.5 mb-3">
-                            <span className="text-[11px] text-[#6c7693] dark:text-[#84849a] font-mono">Suggested Persona Questions:</span>
+                            <span className="text-[11px] text-[#6c7693] font-mono">Suggested Persona Questions:</span>
                             <div className="flex flex-wrap gap-1.5">
                               {config.quickPrompts.map((promptText, idx) => (
                                 <button
                                   key={idx}
                                   onClick={() => handleSendMessage(promptText)}
                                   disabled={isChatSending}
-                                  className="text-left text-xs px-3 py-1.5 rounded-lg bg-white dark:bg-[#1a1d29] hover:bg-[#576cdb] hover:text-white text-[#1f1f47] dark:text-white border border-[#eaedf6] dark:border-[#2a2f42] transition-colors disabled:opacity-50"
+                                  className="text-left text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-[#576cdb] hover:text-white text-[#1f1f47] border border-[#eaedf6] transition-colors disabled:opacity-50"
                                 >
                                   {promptText}
                                 </button>
@@ -691,7 +546,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                                 className={`p-3.5 rounded-2xl max-w-[82%] space-y-1 ${
                                   msg.sender === 'user'
                                     ? 'bg-[#576cdb] text-white rounded-tr-none'
-                                    : 'bg-white dark:bg-[#171a24] text-[#1f1f47] dark:text-white border border-[#eaedf6] dark:border-[#1e2332] rounded-tl-none shadow-sm'
+                                    : 'bg-white text-[#1f1f47] border border-[#eaedf6] rounded-tl-none shadow-sm'
                                 }`}
                               >
                                 <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
@@ -721,7 +576,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                           e.preventDefault();
                           handleSendMessage();
                         }}
-                        className="flex items-center gap-2 pt-2 border-t border-[#eaedf6] dark:border-[#1e2332]"
+                        className="flex items-center gap-2 pt-2 border-t border-[#eaedf6]"
                       >
                         <input
                           type="text"
@@ -729,7 +584,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                           onChange={(e) => setChatInput(e.target.value)}
                           placeholder={`Ask ${selectedCritique.agentName.split(' ')[0]} a question...`}
                           disabled={isChatSending}
-                          className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-[#171a24] border border-[#eaedf6] dark:border-[#1e2332] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] dark:text-white placeholder-[#6c7693] dark:placeholder-[#84849a] outline-none transition-all disabled:opacity-50"
+                          className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eaedf6] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] placeholder-[#6c7693] outline-none transition-all disabled:opacity-50"
                         />
                         <button
                           type="submit"

@@ -28,10 +28,6 @@ export default function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isAlgorithmsModalOpen, setIsAlgorithmsModalOpen] = useState<boolean>(false);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('pitchready_dark_mode') === 'true';
-  });
-
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('pitchready_sidebar_collapsed') === 'true';
   });
@@ -42,20 +38,6 @@ export default function App() {
     const next = !isSidebarCollapsed;
     setIsSidebarCollapsed(next);
     localStorage.setItem('pitchready_sidebar_collapsed', String(next));
-  };
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  const handleToggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem('pitchready_dark_mode', String(next));
   };
 
   // Custom API Key state & quota error tracking
@@ -379,7 +361,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark bg-[#12141c] text-[#f3f4f6]' : 'bg-[#f9f9fb] text-[#171a1c]'} flex font-sans selection:bg-[#576cdb]/30 selection:text-white`}>
+    <div className="min-h-screen bg-[#f9f9fb] text-[#1f1f47] flex font-sans selection:bg-[#576cdb]/30 selection:text-white">
       {/* Sidebar Navigation Drawer */}
       <SidebarNavigation
         activeTab={activeTab}
@@ -404,8 +386,6 @@ export default function App() {
           setActiveTab('intake');
           setIsCreatingIdea(true);
         }}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={handleToggleDarkMode}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={handleToggleSidebar}
         isMobileOpen={isMobileDrawerOpen}
