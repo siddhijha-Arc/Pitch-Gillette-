@@ -1,24 +1,42 @@
 /**
- * Idea Intake & Scope View - RevenueCat Style
- * Horizontal ergonomic layout: Left column = Pitch Overview, Right column = Core Metrics / Intake Form.
- * Eliminates unnecessary vertical scroll and wide container sprawl.
+ * Idea Intake & Executive Pitch Report View - Gillette Pitch Engine
+ *
+ * Dual Mode:
+ * 1. Chat Intake Mode:
+ *    - Floating 3D holographic pearl orb
+ *    - "Good Morning! Got an idea? / Let's see if it's actually a good one."
+ *    - Floating rounded input card with mandatory Startup Name (with red vibration shake animation),
+ *      stage dropdown, and glowing send button.
+ * 2. Submitted Idea Report Mode:
+ *    - Executive venture scorecard and diagnostic summary
+ *    - Readiness score meter, executive pitch transcript, and direct pipeline cards to
+ *      Decomposition, Gaps, TOPSIS, Council, and Deck Export.
+ *    - Prominent "+ New Pitch" button to return to chat intake anytime.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Sparkles,
-  ArrowRight,
-  Building2,
+  Paperclip,
+  ArrowUp,
   RefreshCw,
+  Building2,
+  ChevronDown,
+  ArrowRight,
   PlusCircle,
-  Binary,
-  ShieldCheck,
-  Zap,
-  Layers,
+  GitFork,
+  ShieldAlert,
   SlidersHorizontal,
-  ChevronRight,
+  HelpCircle,
+  Users,
+  Presentation,
+  CheckCircle2,
+  AlertTriangle,
+  Layers,
 } from 'lucide-react';
 import { StartupIdea } from '../../types/index.ts';
+import { TabId } from '../SidebarNavigation.tsx';
 
 interface IdeaIntakeViewProps {
   currentIdea: StartupIdea | null;
@@ -27,6 +45,7 @@ interface IdeaIntakeViewProps {
   isLoading: boolean;
   isSubmittingNew?: boolean;
   onToggleSubmitNew?: (open: boolean) => void;
+  onNavigateTab?: (tab: TabId) => void;
   onOpenApiKeyModal?: () => void;
 }
 
@@ -37,293 +56,575 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
   isLoading,
   isSubmittingNew: externalIsSubmitting,
   onToggleSubmitNew,
-  onOpenApiKeyModal,
+  onNavigateTab,
 }) => {
   const [internalIsSubmitting, setInternalIsSubmitting] = useState(!currentIdea);
-  const isSubmittingNew = externalIsSubmitting !== undefined ? externalIsSubmitting : internalIsSubmitting;
+  const isSubmittingNew =
+    externalIsSubmitting !== undefined ? externalIsSubmitting : internalIsSubmitting;
+
   const setIsSubmittingNew = (open: boolean) => {
     if (onToggleSubmitNew) onToggleSubmitNew(open);
     setInternalIsSubmitting(open);
   };
 
-  const [title, setTitle] = useState('');
-  const [stage, setStage] = useState('CONCEPT');
-  const [rawPitch, setRawPitch] = useState('');
+  const [title, setTitle] = useState(currentIdea?.title || '');
+  const [stage, setStage] = useState<StartupIdea['stage']>(currentIdea?.stage || 'CONCEPT');
+  const [rawPitch, setRawPitch] = useState(currentIdea?.rawPitch || '');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim() || !rawPitch.trim()) return;
+  // Validation & Red Vibration States
+  const [nameError, setNameError] = useState<boolean>(false);
+  const [pitchError, setPitchError] = useState<boolean>(false);
+  const [isVibrating, setIsVibrating] = useState<boolean>(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Keep state updated if idea changes
+  useEffect(() => {
+    if (currentIdea) {
+      setTitle(currentIdea.title);
+      setRawPitch(currentIdea.rawPitch);
+      if (currentIdea.stage) setStage(currentIdea.stage);
+    }
+  }, [currentIdea]);
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    // 1. Mandatory Startup Name Validation with Red Vibration Shake
+    if (!title.trim()) {
+      setNameError(true);
+      setIsVibrating(true);
+
+      // Trigger hardware haptic feedback on mobile if supported
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate([100, 50, 100]);
+        } catch {
+          // Ignore vibration API permission restrictions
+        }
+      }
+
+      // Auto focus input
+      if (titleInputRef.current) {
+        titleInputRef.current.focus();
+      }
+
+      // Reset vibration animation after execution
+      setTimeout(() => {
+        setIsVibrating(false);
+      }, 550);
+
+      return;
+    }
+
+    // 2. Pitch content validation
+    if (!rawPitch.trim()) {
+      setPitchError(true);
+      return;
+    }
+
+    setNameError(false);
+    setPitchError(false);
     onSubmitNewIdea(title.trim(), rawPitch.trim(), stage);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  // If submitting a new idea (or no idea loaded yet), render the Pristine Chat Intake Page
+  if (isSubmittingNew || !currentIdea) {
+    return (
+      <div className="min-h-[76vh] flex flex-col items-center justify-center px-4 py-8 select-none font-sans">
+        <div className="w-full max-w-2xl sm:max-w-3xl flex flex-col items-center">
+          
+          {/* 1. Floating 3D Iridescent Holographic Orb */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative flex items-center justify-center mb-6 sm:mb-7"
+          >
+            {/* Ambient soft glow halo */}
+            <div className="absolute w-20 h-20 bg-gradient-to-tr from-[#60a5fa] via-[#a78bfa] to-[#f472b6] blur-2xl opacity-40 animate-pulse pointer-events-none" />
+
+            {/* 3D Iridescent Pearl Sphere */}
+            <svg
+              className="w-16 h-16 sm:w-20 sm:h-20 drop-shadow-[0_12px_24px_rgba(99,102,241,0.25)] transform transition-transform hover:scale-105 duration-300"
+              viewBox="0 0 100 100"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <radialGradient id="orbBase" cx="35%" cy="30%" r="70%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
+                  <stop offset="25%" stopColor="#e0e7ff" stopOpacity="0.85" />
+                  <stop offset="50%" stopColor="#bfdbfe" stopOpacity="0.75" />
+                  <stop offset="75%" stopColor="#c4b5fd" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#93c5fd" stopOpacity="0.9" />
+                </radialGradient>
+                <radialGradient id="orbReflection" cx="65%" cy="75%" r="60%">
+                  <stop offset="0%" stopColor="#f472b6" stopOpacity="0.45" />
+                  <stop offset="50%" stopColor="#818cf8" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                </radialGradient>
+                <linearGradient id="specularGleam" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <circle cx="50" cy="50" r="44" fill="url(#orbBase)" />
+              <circle cx="50" cy="50" r="44" fill="url(#orbReflection)" />
+              <ellipse
+                cx="38"
+                cy="30"
+                rx="14"
+                ry="8"
+                fill="url(#specularGleam)"
+                transform="rotate(-25 38 30)"
+              />
+              <path
+                d="M26 66 C 30 76, 44 86, 62 86 C 74 86, 82 80, 84 72"
+                stroke="rgba(255,255,255,0.7)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </motion.div>
+
+          {/* 2. Exact Typography Headings */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="text-center space-y-1 mb-7 sm:mb-9"
+          >
+            <h1 className="text-2xl sm:text-4xl font-semibold text-[#1e2532] tracking-tight font-['Outfit',sans-serif]">
+              Good Morning! Got an idea?
+            </h1>
+            <p className="text-xl sm:text-3xl font-semibold text-[#1e2532] tracking-tight font-['Outfit',sans-serif]">
+              Let's see if it's{' '}
+              <span className="bg-gradient-to-r from-[#4f75fe] via-[#6366f1] to-[#8057db] bg-clip-text text-transparent">
+                actually a good one.
+              </span>
+            </p>
+          </motion.div>
+
+          {/* 3. Floating Minimalist Chat Box Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full"
+          >
+            <form
+              onSubmit={handleSubmit}
+              className="w-full bg-white/95 backdrop-blur-xl rounded-[24px] border border-[#eaedf6] shadow-[0_16px_45px_rgba(31,31,71,0.06),0_1px_3px_rgba(0,0,0,0.02)] p-4 sm:p-5 transition-all duration-300 focus-within:shadow-[0_20px_50px_rgba(79,117,254,0.12)] focus-within:border-[#c7d2fe]"
+            >
+              {/* Top Textarea Area with Leading Sparkle Icon */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1 text-[#4f75fe] shrink-0">
+                  <Sparkles className="w-4 h-4 text-[#4f75fe]" />
+                </div>
+
+                <div className="w-full">
+                  <textarea
+                    value={rawPitch}
+                    onChange={(e) => {
+                      setRawPitch(e.target.value);
+                      if (pitchError && e.target.value.trim()) setPitchError(false);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Initiate a query or send a command to the AI..."
+                    rows={3}
+                    disabled={isLoading}
+                    className={`w-full bg-transparent resize-none outline-none text-[#1e2532] text-sm sm:text-base placeholder-[#94a3b8] leading-relaxed font-sans min-h-[72px] sm:min-h-[84px] disabled:opacity-50 ${
+                      pitchError ? 'placeholder-red-400' : ''
+                    }`}
+                  />
+                  {pitchError && (
+                    <span className="text-xs text-red-500 font-medium block mt-1">
+                      Please enter your startup problem or pitch query.
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom Row: Attachment, Startup Name Pill, Stage Dropdown, & Glowing Action Button */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3.5 mt-2 border-t border-[#f1f4f9]">
+                
+                {/* Left Group: Attachment, Mandatory Startup Name, Stage Dropdown */}
+                <div className="flex items-center flex-wrap gap-2">
+                  
+                  {/* Paperclip Button */}
+                  <button
+                    type="button"
+                    title="Attach pitch deck or notes"
+                    className="p-2 rounded-xl text-[#94a3b8] hover:text-[#4f75fe] hover:bg-[#f8fafc] border border-transparent hover:border-[#eaedf6] transition-all shrink-0 cursor-pointer"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
+
+                  {/* Mandatory Startup Name Input Pill with Red Vibration Shake */}
+                  <motion.div
+                    animate={
+                      isVibrating
+                        ? {
+                            x: [-14, 14, -12, 12, -8, 8, -4, 4, 0],
+                            boxShadow: [
+                              '0 0 0 2px rgba(239, 68, 68, 0.4)',
+                              '0 0 0 4px rgba(239, 68, 68, 0.6)',
+                              '0 0 0 2px rgba(239, 68, 68, 0.3)',
+                              '0 0 0 0px rgba(239, 68, 68, 0)',
+                            ],
+                          }
+                        : {}
+                    }
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all ${
+                      nameError
+                        ? 'border-red-500 bg-red-50/90 text-red-900 ring-2 ring-red-400 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                        : 'bg-[#f8fafc] border-[#eaedf6] focus-within:border-[#4f75fe] focus-within:bg-white focus-within:shadow-xs'
+                    }`}
+                  >
+                    <Building2
+                      className={`w-3.5 h-3.5 shrink-0 ${
+                        nameError ? 'text-red-500 animate-pulse' : 'text-[#64748b]'
+                      }`}
+                    />
+                    <input
+                      ref={titleInputRef}
+                      type="text"
+                      value={title}
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                        if (nameError && e.target.value.trim()) setNameError(false);
+                      }}
+                      placeholder="Startup name (Mandatory)..."
+                      disabled={isLoading}
+                      className={`bg-transparent outline-none w-32 sm:w-44 text-xs font-medium placeholder-[#94a3b8] disabled:opacity-50 ${
+                        nameError
+                          ? 'text-red-900 placeholder-red-400 font-semibold'
+                          : 'text-[#1e2532]'
+                      }`}
+                    />
+                  </motion.div>
+
+                  {/* Current Stage Select Dropdown Pill */}
+                  <div className="relative flex items-center px-3 py-1.5 rounded-xl bg-[#f8fafc] border border-[#eaedf6] focus-within:border-[#4f75fe] focus-within:bg-white focus-within:shadow-xs transition-all">
+                    <select
+                      value={stage}
+                      onChange={(e) => setStage(e.target.value as StartupIdea['stage'])}
+                      disabled={isLoading}
+                      className="bg-transparent outline-none cursor-pointer text-xs font-medium text-[#1e2532] pr-4 appearance-none disabled:opacity-50"
+                    >
+                      <option value="CONCEPT">Idea / Concept</option>
+                      <option value="EARLY_MVP">MVP / Prototype</option>
+                      <option value="GROWTH">Seed / Scaling</option>
+                    </select>
+                    <ChevronDown className="w-3 h-3 text-[#94a3b8] absolute right-2 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Right: Glowing Send Button */}
+                <div className="flex items-center justify-end">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#4f75fe] to-[#7c3aed] text-white flex items-center justify-center shadow-[0_6px_18px_rgba(79,117,254,0.35)] transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:shadow-none shrink-0 cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                    )}
+                  </motion.button>
+                </div>
+              </div>
+            </form>
+          </motion.div>
+
+          {/* Toggle back to existing report if available */}
+          {currentIdea && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6 flex items-center gap-2 text-xs text-[#6c7693]"
+            >
+              <span>Currently active evaluation:</span>
+              <button
+                type="button"
+                onClick={() => setIsSubmittingNew(false)}
+                className="font-semibold text-[#4f75fe] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Back to {currentIdea.title} Report</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Executive Report Page for the Submitted Startup Idea
   return (
-    <div className="space-y-6 w-full mx-auto font-sans">
-      {/* Compact Top Action Bar */}
-      <div className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-7 shadow-[rgba(73,46,107,0.04)_0px_2px_8px] flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#d6dbf5] text-[#1f1f47] text-xs font-semibold">
-              <span className="h-2 w-2 rounded-full bg-[#576cdb]" />
-              Live Gemini AI Venture Evaluation
+    <div className="space-y-6 w-full mx-auto font-sans pb-10">
+      
+      {/* Top Executive Header Card with Readiness Score */}
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-7 shadow-[0_4px_20px_rgba(31,31,71,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+      >
+        <div className="space-y-2">
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dce7fe] text-[#1f1f47] text-xs font-semibold">
+              <span className="h-2 w-2 rounded-full bg-[#576cdb] animate-pulse" />
+              Live AI Venture Audit
             </span>
-            <span className="text-xs text-[#84849a] font-mono">
-              Deterministic TOPSIS & DAG
+            <span className="px-3 py-1 rounded-full bg-[#f1f4f9] text-[#575775] text-xs font-mono font-medium">
+              Stage: {currentIdea.stage}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-[#ecfdf5] text-[#059669] text-xs font-mono font-medium">
+              Industry: {currentIdea.industry || 'Technology'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-light text-[#1f1f47] tracking-tight font-sans">
-            {currentIdea ? currentIdea.title : 'Gillette Pitch Engine'}
+
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[#1f1f47] tracking-tight font-['Outfit',sans-serif]">
+            {currentIdea.title}
           </h1>
-          <p className="text-sm sm:text-base text-[#575775] max-w-3xl font-normal leading-relaxed">
-            {currentIdea?.tagline ||
+          <p className="text-sm sm:text-base text-[#6c7693] max-w-3xl font-normal leading-relaxed">
+            {currentIdea.tagline ||
               'Deconstructs startup problems, audits 6-pillar venture gaps, and ranks solutions using live Gemini reasoning.'}
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          {currentIdea && currentIdea.problems.length === 0 && (
-            <button
-              onClick={onDeconstruct}
-              disabled={isLoading}
-              className="px-6 py-3 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white font-medium text-sm shadow-[0_2px_10px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2 disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Deconstructing...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  <span>Deconstruct Idea</span>
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          )}
+        {/* Readiness Meter & Action Buttons */}
+        <div className="flex items-center gap-4 shrink-0">
+          
+          {/* Circular Score Badge */}
+          <div className="flex items-center gap-3 bg-[#f9f9fb] border border-[#eaedf6] px-4 py-3 rounded-2xl">
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                <path
+                  className="text-[#eaedf6]"
+                  strokeWidth="3.5"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+                <path
+                  className="text-[#576cdb]"
+                  strokeDasharray={`${currentIdea.overallReadinessScore || 65}, 100`}
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  stroke="currentColor"
+                  fill="none"
+                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                />
+              </svg>
+              <span className="absolute text-xs font-bold font-mono text-[#1f1f47]">
+                {currentIdea.overallReadinessScore}%
+              </span>
+            </div>
+            <div>
+              <span className="text-[11px] uppercase tracking-wider font-bold text-[#84849a] block font-mono">
+                Readiness Score
+              </span>
+              <span className="text-xs text-[#059669] font-medium flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Venture Audited
+              </span>
+            </div>
+          </div>
 
-          <button
-            onClick={() => setIsSubmittingNew(!isSubmittingNew)}
-            className={`px-5 py-3 rounded-full border text-sm font-semibold transition-all flex items-center gap-2 ${
-              isSubmittingNew
-                ? 'bg-[#1f1f47] text-white border-[#1f1f47]'
-                : 'bg-white hover:bg-[#f9f9fb] border-[#eaedf6] text-[#1f1f47]'
-            }`}
+          {/* New Pitch Action Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsSubmittingNew(true)}
+            className="px-5 py-3 rounded-xl bg-[#576cdb] hover:bg-[#485bc7] text-white font-medium text-xs sm:text-sm shadow-[0_4px_14px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2 cursor-pointer shrink-0"
           >
-            <PlusCircle className="h-4 w-4 text-[#576cdb]" />
-            <span>{isSubmittingNew ? 'Close Form' : '+ New Pitch'}</span>
-          </button>
+            <PlusCircle className="w-4 h-4" />
+            <span>+ New Pitch</span>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Raw Pitch Statement Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-2xl border border-[#eaedf6] p-6 shadow-[0_2px_12px_rgba(31,31,71,0.02)] space-y-3"
+      >
+        <div className="flex items-center justify-between border-b border-[#f1f4f9] pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#6c7693] uppercase font-mono tracking-wider">
+            <Building2 className="w-4 h-4 text-[#576cdb]" />
+            <span>Executive Pitch Statement</span>
+          </div>
+          <span className="text-xs text-[#84849a] font-mono">
+            Version {currentIdea.currentVersion || 1}.0
+          </span>
+        </div>
+
+        <p className="text-sm sm:text-base text-[#1e2532] leading-relaxed italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6]">
+          "{currentIdea.rawPitch}"
+        </p>
+      </motion.div>
+
+      {/* Core Diagnostic Navigation Grid (Pipelines to Deep Modules) */}
+      <div className="space-y-3">
+        <h2 className="text-xs sm:text-sm font-bold text-[#1f1f47] uppercase font-mono tracking-wider">
+          Venture Diagnostic Pipeline
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          
+          {/* 1. Problem Decomposition */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab ? onNavigateTab('decomposition') : onDeconstruct()}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#dce7fe] text-[#3b5998] flex items-center justify-center">
+                <GitFork className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                Problem Decomposition & DAG
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                Separates symptoms from root causes using graph network centrality.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#576cdb]">
+              <span>{currentIdea.problems?.length || 0} Problems Mapped</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
+
+          {/* 2. 6-Pillar Gap Audit */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab && onNavigateTab('gaps')}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#fee2e2] text-[#dc2626] flex items-center justify-center">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                6-Pillar Venture Gap Audit
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                Identifies fatal flaws and critical vulnerabilities across TAM, Tech, Economics, and Moat.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#dc2626]">
+              <span>{currentIdea.gaps?.length || 0} Gaps Audited</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
+
+          {/* 3. TOPSIS Solution Studio */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab && onNavigateTab('topsis')}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#fef3c7] text-[#b45309] flex items-center justify-center">
+                <SlidersHorizontal className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                TOPSIS Ranked Solutions
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                Multi-criteria mathematical decision ranking against ideal best and worst solutions.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#b45309]">
+              <span>{currentIdea.solutions?.length || 0} Strategies Ranked</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
+
+          {/* 4. Adaptive Stress-Testing */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab && onNavigateTab('questions')}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#ecfdf5] text-[#059669] flex items-center justify-center">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                Adaptive Questioning
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                Information-theoretic inquiry to validate founder assumptions and resolve risk.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#059669]">
+              <span>Start Stress-Test</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
+
+          {/* 5. 6-Agent Evaluation Council */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab && onNavigateTab('agents')}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#ede9fe] text-[#6d28d9] flex items-center justify-center">
+                <Users className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                Evaluation Council (6 Judges)
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                1-on-1 persona chats with VC, Customer, CTO, Lawyer, CFO, and Product Builder.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#6d28d9]">
+              <span>6 Personas Ready</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
+
+          {/* 6. Pitch Deck Export */}
+          <motion.div
+            whileHover={{ y: -4, boxShadow: '0 12px 28px rgba(0,0,0,0.05)' }}
+            onClick={() => onNavigateTab && onNavigateTab('deck')}
+            className="bg-white rounded-2xl border border-[#eaedf6] p-5 shadow-xs hover:border-[#c7d2fe] transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div className="space-y-2.5">
+              <div className="w-10 h-10 rounded-xl bg-[#e0e7ff] text-[#4338ca] flex items-center justify-center">
+                <Presentation className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-semibold text-[#1e2532] font-['Outfit',sans-serif]">
+                Pitch Deck Generator
+              </h3>
+              <p className="text-xs text-[#6c7693] leading-relaxed">
+                12-slide native PowerPoint (.pptx) pitch deck export with themes.
+              </p>
+            </div>
+            <div className="mt-4 pt-3 border-t border-[#f1f4f9] flex items-center justify-between text-xs font-semibold text-[#4338ca]">
+              <span>Export Presentation</span>
+              <ArrowRight className="w-4 h-4" />
+            </div>
+          </motion.div>
         </div>
       </div>
-
-      {/* Horizontal Alignment: New Pitch Intake Form */}
-      {isSubmittingNew && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-8 shadow-[rgba(73,46,107,0.06)_0px_3px_12px] space-y-6 animate-in fade-in duration-200"
-        >
-          <div className="flex items-center justify-between border-b border-[#eaedf6] pb-4">
-            <h2 className="text-lg font-medium text-[#1f1f47] flex items-center gap-2.5 tracking-tight">
-              <Building2 className="h-5 w-5 text-[#576cdb]" />
-              Submit Startup Pitch For Live AI Audit
-            </h2>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f0fdf4] border border-[#bbf7d0] text-[#15803d] text-xs font-semibold">
-              <Binary className="h-3.5 w-3.5" />
-              <span>Live AI Classification</span>
-            </div>
-          </div>
-
-          {/* 2-Column Horizontal Split Form */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            {/* Left Column: Metadata */}
-            <div className="md:col-span-5 space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#1f1f47]">
-                  Startup Name / Working Concept
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. TerraCharge: Autonomous EV Depot Optimization"
-                  required
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] focus:border-[#576cdb] focus:bg-white text-sm sm:text-base text-[#171a1c] placeholder-[#84849a] outline-none transition-all disabled:opacity-50"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#1f1f47]">Current Stage</label>
-                <select
-                  value={stage}
-                  onChange={(e) => setStage(e.target.value)}
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] focus:border-[#576cdb] focus:bg-white text-sm sm:text-base text-[#171a1c] outline-none disabled:opacity-50"
-                >
-                  <option value="CONCEPT">Concept / Pre-Seed</option>
-                  <option value="EARLY_MVP">Functional Prototype / MVP</option>
-                  <option value="SEED_TRACTION">Early Revenue / Seed Pilot</option>
-                </select>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] text-xs sm:text-sm text-[#575775] space-y-1.5">
-                <span className="font-semibold text-[#1f1f47] flex items-center gap-1.5 font-mono text-xs uppercase">
-                  <ShieldCheck className="h-4 w-4 text-[#576cdb]" />
-                  Autonomous Extraction
-                </span>
-                <p className="text-xs sm:text-sm leading-relaxed">
-                  Gemini extracts ICP, unit economics, 6-pillar gaps, and builds the causal DAG in real time.
-                </p>
-              </div>
-            </div>
-
-            {/* Right Column: Narrative & Action */}
-            <div className="md:col-span-7 space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-semibold text-[#1f1f47]">Pitch Narrative</label>
-                  <span className="text-xs text-[#84849a]">Problem, customer, tech, & monetization</span>
-                </div>
-                <textarea
-                  value={rawPitch}
-                  onChange={(e) => setRawPitch(e.target.value)}
-                  rows={5}
-                  placeholder="Describe your startup: What problem does it solve? Who is the buyer? What is the technical mechanism? How do you monetize, and why do existing alternatives fail?"
-                  required
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 rounded-xl bg-[#f9f9fb] border border-[#eaedf6] focus:border-[#576cdb] focus:bg-white text-sm sm:text-base text-[#171a1c] placeholder-[#84849a] outline-none resize-none transition-all disabled:opacity-50 font-sans leading-relaxed"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsSubmittingNew(false)}
-                  disabled={isLoading}
-                  className="px-5 py-2.5 rounded-full text-sm font-medium text-[#6c7693] hover:text-[#1f1f47] disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading || !title.trim() || !rawPitch.trim()}
-                  className="px-6 py-3 rounded-full bg-[#576cdb] hover:bg-[#4a5fc7] text-white text-sm font-semibold shadow-[0_2px_8px_rgba(87,108,219,0.25)] transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span>Analyzing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      <span>Run Full Venture Audit</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </form>
-      )}
-
-      {/* Horizontal Alignment: Active Idea Overview & Core Metrics */}
-      {currentIdea ? (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-          {/* Left Column (7 cols): Pitch Statement Card */}
-          <div className="md:col-span-7 bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-7 shadow-[rgba(73,46,107,0.04)_0px_2px_8px] flex flex-col justify-between space-y-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-[#eaedf6] pb-3.5">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-sm font-semibold px-3.5 py-1 rounded-full bg-[#d6dbf5] text-[#1f1f47]">
-                    {currentIdea.industry}
-                  </span>
-                  <span className="text-sm text-[#6c7693] font-mono">Stage: {currentIdea.stage}</span>
-                </div>
-                <span className="text-sm text-[#84849a] font-mono font-medium">
-                  Version {currentIdea.currentVersion}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-xs font-semibold text-[#84849a] uppercase tracking-wider block font-mono mb-2">
-                  Pitch Statement
-                </span>
-                <p className="text-base sm:text-lg text-[#1f1f47] leading-relaxed bg-[#f9f9fb] p-5 rounded-2xl border border-[#eaedf6] italic font-medium">
-                  "{currentIdea.rawPitch}"
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-3 border-t border-[#eaedf6] text-sm text-[#6c7693]">
-              <span className="truncate max-w-[360px]">
-                {currentIdea.tagline || 'Strategic venture thesis loaded'}
-              </span>
-              <span className="text-xs font-mono font-bold text-[#576cdb]">
-                Active In Engine
-              </span>
-            </div>
-          </div>
-
-          {/* Right Column (5 cols): 4 Core Metrics 2x2 Grid */}
-          <div className="md:col-span-5 grid grid-cols-2 gap-4">
-            {/* Readiness Score */}
-            <div className="p-5 rounded-2xl bg-white border border-[#eaedf6] shadow-[rgba(73,46,107,0.03)_0px_2px_6px] flex flex-col justify-between">
-              <span className="text-sm text-[#6c7693] font-medium block">Readiness Score</span>
-              <div className="my-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#576cdb] tracking-tight">
-                  {currentIdea.overallReadinessScore}%
-                </span>
-              </div>
-              <span className="text-xs text-[#84849a] font-mono">Normalized Index</span>
-            </div>
-
-            {/* Problem Nodes */}
-            <div className="p-5 rounded-2xl bg-white border border-[#eaedf6] shadow-[rgba(73,46,107,0.03)_0px_2px_6px] flex flex-col justify-between">
-              <span className="text-sm text-[#6c7693] font-medium block">Problem Nodes</span>
-              <div className="my-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
-                  {currentIdea.problems.length}
-                </span>
-              </div>
-              <span className="text-xs text-[#84849a] font-mono">Causal Graph Vertices</span>
-            </div>
-
-            {/* Identified Gaps */}
-            <div className="p-5 rounded-2xl bg-white border border-[#eaedf6] shadow-[rgba(73,46,107,0.03)_0px_2px_6px] flex flex-col justify-between">
-              <span className="text-sm text-[#6c7693] font-medium block">Identified Gaps</span>
-              <div className="my-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#f25a5a] tracking-tight">
-                  {currentIdea.gaps.length}
-                </span>
-              </div>
-              <span className="text-xs text-[#f25a5a] font-mono font-medium">6-Pillar Audited</span>
-            </div>
-
-            {/* Ranked Solutions */}
-            <div className="p-5 rounded-2xl bg-white border border-[#eaedf6] shadow-[rgba(73,46,107,0.03)_0px_2px_6px] flex flex-col justify-between">
-              <span className="text-sm text-[#6c7693] font-medium block">Ranked Solutions</span>
-              <div className="my-2">
-                <span className="text-4xl sm:text-5xl font-light text-[#1f1f47] tracking-tight">
-                  {currentIdea.solutions.length}
-                </span>
-              </div>
-              <span className="text-xs text-[#10b981] font-mono font-medium">TOPSIS Ranked</span>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-dashed border-[#eaedf6] p-10 text-center space-y-3">
-          <div className="mx-auto w-10 h-10 rounded-2xl bg-[#f0f4ff] flex items-center justify-center text-[#576cdb]">
-            <Zap className="h-5 w-5" />
-          </div>
-          <div className="max-w-md mx-auto space-y-1">
-            <h3 className="text-base font-medium text-[#1f1f47]">No Startup Pitch Loaded</h3>
-            <p className="text-xs text-[#6c7693] leading-relaxed">
-              Click <strong>+ New Pitch</strong> above to enter any startup concept. Live Gemini AI will decompose problems, audit 6-pillar gaps, run TOPSIS, and simulate 6 partner critiques.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

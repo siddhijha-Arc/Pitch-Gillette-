@@ -1,29 +1,22 @@
 /**
  * Multi-Agent Evaluation Council View - Gillette Pitch Engine
  *
- * Exclusively displays persona-based reviewer perspective cards with
- * interactive 1-on-1 discussion modals, spring animations, and Gillette SaaS styling.
+ * Exclusively displays persona-based reviewer perspective cards matching
+ * the exact layout, typography, positioning, and spacing from the reference design.
+ * Features top pastel banner with vector diagram, 2-line profession title with plus icon,
+ * crisp 3-line review description, and centered pastel pill button.
  * Pure Light Mode.
  */
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Users,
   RefreshCw,
   Sparkles,
-  Scale,
-  DollarSign,
-  UserCheck,
-  Cpu,
-  TrendingUp,
-  Award,
   X,
   MessageSquare,
   Send,
-  Bot,
   User,
-  ChevronRight,
 } from 'lucide-react';
 import { AgentCritique, StartupIdea } from '../../types/index.ts';
 
@@ -36,18 +29,26 @@ interface MultiAgentCouncilViewProps {
 const AGENT_CONFIG: Record<
   string,
   {
-    icon: React.ElementType;
-    bg: string;
-    text: string;
+    titleLine1: string;
+    titleLine2: string;
+    roleName: string;
+    buttonText: string;
+    cardBg: string;
+    pillBg: string;
+    pillText: string;
+    avatarUrl: string;
     quickPrompts: string[];
-    roleTitle: string;
   }
 > = {
   VC_PARTNER: {
-    icon: DollarSign,
-    bg: 'bg-[#e0e7ff]',
-    text: 'text-[#4f46e5]',
-    roleTitle: 'General Partner, Tier-1 VC',
+    titleLine1: 'Venture',
+    titleLine2: 'capitalist',
+    roleName: 'General Partner, Tier-1 VC',
+    buttonText: 'Chat with VC',
+    cardBg: 'bg-[#dce7fe]',
+    pillBg: 'bg-[#dce7fe] hover:bg-[#c9dafc]',
+    pillText: 'text-[#3b5998]',
+    avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
     quickPrompts: [
       'What TAM & market moat metric would upgrade your score to 10/10?',
       'How should we structure our Series A valuation pitch?',
@@ -55,10 +56,14 @@ const AGENT_CONFIG: Record<
     ],
   },
   ICP_CUSTOMER: {
-    icon: UserCheck,
-    bg: 'bg-[#ecfdf5]',
-    text: 'text-[#059669]',
-    roleTitle: 'Chief Medical Officer, Regional Hospital System',
+    titleLine1: 'Customer',
+    titleLine2: 'perspective',
+    roleName: 'Chief Medical Officer, Regional Hospital System',
+    buttonText: 'Chat with Customer',
+    cardBg: 'bg-[#d7f3e3]',
+    pillBg: 'bg-[#d7f3e3] hover:bg-[#c2ebd1]',
+    pillText: 'text-[#1b764b]',
+    avatarUrl: '/assets/aistudio/1000013131_173bcf1b.png',
     quickPrompts: [
       'How can we prove zero clinical liability to your hospital board?',
       'What EHR integration features (Epic/Cerner) are non-negotiable?',
@@ -66,10 +71,14 @@ const AGENT_CONFIG: Record<
     ],
   },
   TECH_ARCHITECT: {
-    icon: Cpu,
-    bg: 'bg-[#fef2f2]',
-    text: 'text-[#dc2626]',
-    roleTitle: 'Veteran CTO & Systems Architect',
+    titleLine1: 'Tech',
+    titleLine2: 'architect',
+    roleName: 'Veteran CTO & Systems Architect',
+    buttonText: 'Chat with CTO',
+    cardBg: 'bg-[#fdf3cf]',
+    pillBg: 'bg-[#fdf3cf] hover:bg-[#fcedba]',
+    pillText: 'text-[#854d0e]',
+    avatarUrl: '/assets/aistudio/1000013134_4647e05a.png',
     quickPrompts: [
       'How do we guarantee 99.99% uptime in low-connectivity environments?',
       'What hardware/telemetry stack do you recommend for our MVP?',
@@ -77,10 +86,14 @@ const AGENT_CONFIG: Record<
     ],
   },
   LEGAL_COUNSEL: {
-    icon: Scale,
-    bg: 'bg-[#f3e8ff]',
-    text: 'text-[#7c3aed]',
-    roleTitle: 'Healthcare Regulatory & Compliance Attorney',
+    titleLine1: 'Healthcare',
+    titleLine2: 'lawyer',
+    roleName: 'Healthcare Regulatory & Compliance Attorney',
+    buttonText: 'Chat with Lawyer',
+    cardBg: 'bg-[#efe6fd]',
+    pillBg: 'bg-[#efe6fd] hover:bg-[#e2d2fc]',
+    pillText: 'text-[#6d28d9]',
+    avatarUrl: '/assets/aistudio/1000013133_3217a220.png',
     quickPrompts: [
       'How do we structure our corporate entity to satisfy state medical boards?',
       'What contract terms prevent Anti-Kickback statute violations?',
@@ -88,10 +101,14 @@ const AGENT_CONFIG: Record<
     ],
   },
   FINANCIAL_ANALYST: {
-    icon: TrendingUp,
-    bg: 'bg-[#f0fdf4]',
-    text: 'text-[#16a34a]',
-    roleTitle: 'CFO & Unit Economics Specialist',
+    titleLine1: 'Financial',
+    titleLine2: 'analyst',
+    roleName: 'CFO & Unit Economics Specialist',
+    buttonText: 'Chat with Analyst',
+    cardBg: 'bg-[#ffe5d9]',
+    pillBg: 'bg-[#ffe5d9] hover:bg-[#fed3c1]',
+    pillText: 'text-[#c2410c]',
+    avatarUrl: '/assets/aistudio/1000013130_64969f18.png',
     quickPrompts: [
       'How can we improve our gross margin profile above 70%?',
       'What is the safest pricing tier strategy for enterprise contracts?',
@@ -99,10 +116,14 @@ const AGENT_CONFIG: Record<
     ],
   },
   HACKATHON_JUDGE: {
-    icon: Award,
-    bg: 'bg-[#fffbeb]',
-    text: 'text-[#d97706]',
-    roleTitle: 'Product Builder & Founder',
+    titleLine1: 'Product',
+    titleLine2: 'builder',
+    roleName: 'Product Builder & Founder',
+    buttonText: 'Chat with Founder',
+    cardBg: 'bg-[#dbeafe]',
+    pillBg: 'bg-[#dbeafe] hover:bg-[#c9dafc]',
+    pillText: 'text-[#2563eb]',
+    avatarUrl: '/assets/aistudio/1000013132_ceaba763.png',
     quickPrompts: [
       'What is the single core feature we should focus on for our 30-day MVP?',
       'How do we remove onboarding friction for ambulance operators?',
@@ -151,9 +172,11 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
     // Initialize initial greeting if chat history is empty
     if (!chatHistories[critique.agent] || chatHistories[critique.agent].length === 0) {
+      const config = AGENT_CONFIG[critique.agent] || { titleLine1: critique.title, titleLine2: '' };
+      const fullTitle = `${config.titleLine1} ${config.titleLine2}`.trim();
       const initialGreeting: ChatMessage = {
         sender: 'judge',
-        text: `Hello! I'm ${critique.agentName} (${critique.title}). I gave your pitch a score of ${critique.overallScore}/10 (${critique.verdict.replace(/_/g, ' ')}). My primary feedback: "${critique.summaryQuote}". What questions do you have about my evaluation or recommendations?`,
+        text: `Hello! I'm ${critique.agentName} (${fullTitle}). I gave your pitch a score of ${critique.overallScore}/10 (${critique.verdict.replace(/_/g, ' ')}). My feedback summary: "${critique.summaryQuote}". What questions do you have about my evaluation or recommendations?`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setChatHistories((prev) => ({
@@ -247,7 +270,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.07,
+        staggerChildren: 0.08,
       },
     },
   };
@@ -259,7 +282,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
 
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
-      {/* 1. Header with Run Deliberation Action */}
+      {/* 1. Top Header with Run Deliberation Action */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -299,14 +322,14 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         </motion.button>
       </motion.div>
 
-      {/* 2. Reviewer Perspectives Grid (Exclusively Persona Cards) */}
+      {/* 2. Reviewer Perspectives Grid (Identical to Reference Design Image) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm sm:text-base font-bold text-[#1f1f47] uppercase tracking-wider font-mono">
             Reviewer Perspectives ({critiques.length})
           </h2>
           <span className="text-xs sm:text-sm text-[#6c7693]">
-            Click any reviewer card to open 1-on-1 persona discussion pop-up
+            Click any card to open 1-on-1 persona chat & full evaluation
           </span>
         </div>
 
@@ -314,88 +337,72 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7"
         >
           {critiques.map((critique) => {
             const config = AGENT_CONFIG[critique.agent] || {
-              icon: Users,
-              bg: 'bg-[#e0e7ff]',
-              text: 'text-[#4f46e5]',
-              roleTitle: critique.title,
+              titleLine1: critique.title,
+              titleLine2: 'reviewer',
+              roleName: critique.agentName,
+              buttonText: 'Chat',
+              cardBg: 'bg-[#dce7fe]',
+              pillBg: 'bg-[#dce7fe] hover:bg-[#c9dafc]',
+              pillText: 'text-[#3b5998]',
+              avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
               quickPrompts: [],
             };
-            const Icon = config.icon;
-            const badgeClass = getVerdictBadge(critique.verdict);
 
             return (
               <motion.div
                 key={critique.agent}
                 variants={itemVariants}
-                whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 28px rgba(87,108,219,0.12)' }}
+                whileHover={{ y: -6, scale: 1.01, boxShadow: '0 20px 40px rgba(0,0,0,0.07)' }}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => openJudgeModal(critique)}
-                className="bg-white rounded-2xl border border-[#eaedf6] p-6 space-y-4 shadow-[rgba(73,46,107,0.03)_0px_3px_12px] hover:border-[#576cdb] transition-all cursor-pointer flex flex-col justify-between group"
+                className={`${config.cardBg} rounded-[32px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-transparent transition-all duration-200 cursor-pointer flex flex-col justify-between group`}
               >
-                <div className="space-y-3.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-11 h-11 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0 group-hover:scale-105 transition-transform`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg sm:text-xl font-medium text-[#1f1f47] tracking-[-0.02em] font-sans">
-                          {critique.agentName}
-                        </h3>
-                        <span className="text-xs sm:text-sm text-[#6c7693] block font-mono">
-                          {config.roleTitle}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="text-2xl sm:text-3xl font-light font-mono text-[#1f1f47]">
-                        {critique.overallScore}
-                      </span>
-                      <span className="text-xs text-[#6c7693] font-mono">/10</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
-                      {critique.verdict.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-xs text-[#6c7693] font-mono">{critique.agent}</span>
-                  </div>
-
-                  {/* Quoted Summary Stance */}
-                  <p className="text-xs sm:text-sm text-[#3d3d5c] italic bg-[#f9f9fb] p-4 rounded-xl border border-[#eaedf6] leading-relaxed">
-                    "{critique.summaryQuote}"
-                  </p>
-
-                  {/* Integrated Bullish & Bearish Snippets */}
-                  <div className="space-y-2 pt-1 text-xs sm:text-sm">
-                    <div className="flex items-start gap-2 text-[#059669]">
-                      <span className="font-semibold shrink-0 font-mono">🟢 Strength:</span>
-                      <p className="text-[#3d3d5c] line-clamp-2 leading-relaxed">
-                        {critique.bullishArgument}
-                      </p>
-                    </div>
-
-                    <div className="flex items-start gap-2 text-[#dc2626]">
-                      <span className="font-semibold shrink-0 font-mono">🔴 Risk:</span>
-                      <p className="text-[#3d3d5c] line-clamp-2 leading-relaxed">
-                        {critique.bearishArgument}
-                      </p>
-                    </div>
-                  </div>
+                {/* Top Pastel Banner with Grounded 3D Persona Avatar */}
+                <div className="relative h-56 sm:h-64 flex items-end justify-center overflow-hidden select-none">
+                  {/* 3D Character Avatar enlarged & grounded directly flush on top of the white card */}
+                  <img
+                    src={config.avatarUrl}
+                    alt={config.roleName}
+                    className="relative z-10 h-52 sm:h-60 w-auto max-w-[88%] object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,0.12)] transform transition-transform duration-300 group-hover:scale-105 translate-y-[2px]"
+                    loading="lazy"
+                  />
                 </div>
 
-                {/* Card Footer Call to Action Button */}
-                <div className="pt-4 border-t border-[#eaedf6]">
-                  <div className="w-full py-2.5 px-4 rounded-xl bg-[#f9f9fb] group-hover:bg-[#576cdb] text-[#576cdb] group-hover:text-white text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 border border-[#eaedf6] group-hover:border-[#576cdb]">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>Discuss with {critique.agentName.split(' ')[0]} & Full Eval</span>
-                    <ChevronRight className="h-4 w-4" />
+                {/* Lower White Section with Rounded Top Corners */}
+                <div className="bg-white rounded-t-[28px] rounded-b-[32px] p-6 pt-5 pb-6 flex flex-col justify-between flex-1 relative z-20">
+                  <div>
+                    {/* Title & Plus Icon Header Line */}
+                    <div className="flex items-start justify-between">
+                      <h3 className="font-['Outfit',sans-serif] text-[22px] font-semibold text-[#1e2532] leading-[1.18] tracking-tight">
+                        <div>{config.titleLine1}</div>
+                        <div className="lowercase font-normal">{config.titleLine2}</div>
+                      </h3>
+                      <span className="text-[#94a3b8] text-[20px] font-light leading-none group-hover:text-[#4b5563] transition-colors mt-0.5">
+                        +
+                      </span>
+                    </div>
+
+                    {/* Crisp 3-Line Description Paragraph */}
+                    <p className="font-['Plus_Jakarta_Sans',sans-serif] text-[13px] text-[#8896a6] leading-[1.65] font-normal mt-3.5 line-clamp-3">
+                      {critique.summaryQuote}
+                    </p>
+                  </div>
+
+                  {/* Centered Small Pill Button */}
+                  <div className="mt-5 flex justify-center">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openJudgeModal(critique);
+                      }}
+                      className={`font-['Plus_Jakarta_Sans',sans-serif] text-[12px] font-medium px-6 py-1.5 rounded-full transition-all shadow-xs ${config.pillBg} ${config.pillText}`}
+                    >
+                      {config.buttonText}
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -404,7 +411,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         </motion.div>
       </div>
 
-      {/* 3. Minimal Style Pop-Up Modal (`JudgePersonaModal`) with Framer Motion AnimatePresence */}
+      {/* 3. Minimal Style Pop-Up Modal (`JudgePersonaModal`) */}
       <AnimatePresence>
         {selectedCritique && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 font-sans">
@@ -423,39 +430,47 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] as const }}
-              className="relative w-full max-w-4xl bg-white rounded-2xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] z-10"
+              className="relative w-full max-w-4xl bg-white rounded-3xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] z-10"
             >
               {(() => {
                 const config = AGENT_CONFIG[selectedCritique.agent] || {
-                  icon: Users,
-                  bg: 'bg-[#e0e7ff]',
-                  text: 'text-[#4f46e5]',
-                  roleTitle: selectedCritique.title,
+                  titleLine1: selectedCritique.title,
+                  titleLine2: '',
+                  roleName: selectedCritique.agentName,
+                  buttonText: 'Chat',
+                  cardBg: 'bg-[#dce7fe]',
+                  pillBg: 'bg-[#dce7fe]',
+                  pillText: 'text-[#3b5998]',
+                  avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
                   quickPrompts: [],
                 };
-                const Icon = config.icon;
                 const badgeClass = getVerdictBadge(selectedCritique.verdict);
                 const history = chatHistories[selectedCritique.agent] || [];
+                const fullJudgeTitle = `${config.titleLine1} ${config.titleLine2}`.trim();
 
                 return (
                   <>
                     {/* Modal Header */}
                     <div className="p-6 border-b border-[#eaedf6] bg-[#f9f9fb] flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3.5">
-                        <div className={`w-12 h-12 rounded-2xl ${config.bg} flex items-center justify-center ${config.text} shrink-0 shadow-xs`}>
-                          <Icon className="h-6 w-6" />
+                        <div className={`w-14 h-14 rounded-2xl ${config.cardBg} relative overflow-hidden flex items-end justify-center p-0.5 shrink-0 shadow-xs border border-white/80`}>
+                          <img
+                            src={config.avatarUrl}
+                            alt={config.roleName}
+                            className="relative z-10 h-13 w-auto object-contain object-bottom drop-shadow-sm translate-y-[1px]"
+                          />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] font-sans">
-                              {selectedCritique.agentName}
+                            <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f47] font-['Outfit',sans-serif]">
+                              {fullJudgeTitle} ({selectedCritique.agentName})
                             </h2>
                             <span className={`text-xs font-semibold font-mono uppercase px-3 py-1 rounded-full border ${badgeClass}`}>
                               {selectedCritique.verdict.replace(/_/g, ' ')}
                             </span>
                           </div>
                           <p className="text-xs sm:text-sm text-[#6c7693] font-mono mt-0.5">
-                            {config.roleTitle} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
+                            {selectedCritique.title} • Rating: <strong className="text-[#576cdb]">{selectedCritique.overallScore}/10</strong>
                           </p>
                         </div>
                       </div>
@@ -470,7 +485,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                       </motion.button>
                     </div>
 
-                    {/* Modal Content Split: Left (Full Evaluation Data) & Right (Real-Time Persona Discussion) */}
+                    {/* Modal Content Split: Left (Detailed Evaluation) & Right (1-on-1 Chat) */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#eaedf6] overflow-y-auto flex-1">
                       
                       {/* Left Pane: Detailed Evaluation Breakdown */}
@@ -581,13 +596,21 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                                   }`}
                                 >
                                   <div
-                                    className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-xs ${
+                                    className={`w-8 h-8 rounded-full overflow-hidden flex items-end justify-center shrink-0 mt-0.5 text-xs shadow-xs ${
                                       msg.sender === 'user'
-                                        ? 'bg-[#576cdb] text-white'
-                                        : `${config.bg} ${config.text}`
+                                        ? 'bg-[#576cdb] text-white p-1.5'
+                                        : `${config.cardBg} border border-[#eaedf6]`
                                     }`}
                                   >
-                                    {msg.sender === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                                    {msg.sender === 'user' ? (
+                                      <User className="h-4 w-4" />
+                                    ) : (
+                                      <img
+                                        src={config.avatarUrl}
+                                        alt={config.roleName}
+                                        className="h-7 w-auto object-contain object-bottom"
+                                      />
+                                    )}
                                   </div>
 
                                   <div
@@ -635,7 +658,7 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                             type="text"
                             value={chatInput}
                             onChange={(e) => setChatInput(e.target.value)}
-                            placeholder={`Ask ${selectedCritique.agentName.split(' ')[0]} a question...`}
+                            placeholder={`Ask ${fullJudgeTitle.split(' ')[0]} a question...`}
                             disabled={isChatSending}
                             className="flex-1 px-4 py-3 rounded-xl bg-white border border-[#eaedf6] focus:border-[#576cdb] text-xs sm:text-sm text-[#171a1c] placeholder-[#6c7693] outline-none transition-all disabled:opacity-50 font-sans"
                           />

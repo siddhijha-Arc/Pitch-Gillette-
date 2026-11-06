@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  /* RevenueCat Design Tokens */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
   --color-periwinkle-signal: #576cdb;
@@ -26,89 +26,42 @@
   --color-mint-veil: #c1f6e0;
 }
 
+:root {
+  color-scheme: light;
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  letter-spacing: -0.01em;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #f9f9fb;
+  color: #171a1c;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Card Heading according to design.md */
-.card-heading {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Whisper heading for hero titles */
-.whisper-heading {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-weight: 300;
-  letter-spacing: -0.035em;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Premium Dark Mode Styling (design.md scheme) */
-.dark body,
-html.dark body {
-  background-color: #0c0e15;
-  color: #f1f3f9;
+::-webkit-scrollbar-thumb {
+  background: #d1d6e1;
+  border-radius: 9999px;
 }
 
-.dark .bg-white {
-  background-color: #141724;
-  border-color: #212638;
-  color: #f1f3f9;
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
 
-.dark .bg-\[\#f9f9fb\] {
-  background-color: #191d2c;
-  border-color: #262c40;
-  color: #e2e8f0;
+/* Typography Helpers */
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
 }
 
-.dark .border-\[\#eaedf6\],
-.dark .border-\[\#d1d6e1\],
-.dark .border-\[\#f1f3f9\] {
-  border-color: #212638;
-}
-
-.dark .text-\[\#1f1f47\],
-.dark .text-\[\#171a1c\] {
-  color: #ffffff;
-}
-
-.dark .text-\[\#3d3d5c\] {
-  color: #cbd5e1;
-}
-
-.dark .text-\[\#6c7693\],
-.dark .text-\[\#575775\],
-.dark .text-\[\#84849a\],
-.dark .text-\[\#5e6573\],
-.dark .text-\[\#7c8397\] {
-  color: #94a3b8;
-}
-
-.dark input,
-.dark textarea,
-.dark select {
-  background-color: #181d2c;
-  border-color: #272d42;
-  color: #ffffff;
-}
-
-.dark input:focus,
-.dark textarea:focus,
-.dark select:focus {
-  background-color: #1d2335;
-  border-color: #576cdb;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #64748b;
-}
-
-/* Header in dark mode */
-.dark header {
-  background-color: rgba(14, 17, 26, 0.95);
-  border-color: #1e2332;
+.font-jakarta {
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }

@@ -14,7 +14,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#eaedf6] bg-white/95 backdrop-blur-md transition-colors">
       <div className="w-full px-6 sm:px-8 h-16 flex items-center justify-between">
-        {/* Brand identity - Only app name and logo */}
+        {/* Brand identity - App name and logo */}
         <div className="flex items-center gap-3">
           {onToggleMobileMenu && (
             <button

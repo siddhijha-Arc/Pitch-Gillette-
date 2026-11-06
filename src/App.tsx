@@ -345,7 +345,7 @@ export default function App() {
         setCurrentIdeaId(data.idea.id);
         setCurrentIdea(data.idea);
         setIsCreatingIdea(false);
-        setActiveTab('decomposition');
+        setActiveTab('intake');
       } else {
         if (data.error === 'QUOTA_EXCEEDED') {
           setIsQuotaExhaustedError(true);
@@ -417,6 +417,7 @@ export default function App() {
                   isLoading={isLoading}
                   isSubmittingNew={isCreatingIdea || !currentIdea}
                   onToggleSubmitNew={(open) => setIsCreatingIdea(open)}
+                  onNavigateTab={(tab) => setActiveTab(tab)}
                   onOpenApiKeyModal={() => {
                     setIsQuotaExhaustedError(false);
                     setIsApiKeyModalOpen(true);
