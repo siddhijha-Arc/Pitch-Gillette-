@@ -381,20 +381,7 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-7 shadow-[0_4px_20px_rgba(31,31,71,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-6"
       >
-        <div className="space-y-2">
-          <div className="flex items-center flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dce7fe] text-[#1f1f47] text-xs font-semibold">
-              <span className="h-2 w-2 rounded-full bg-[#576cdb] animate-pulse" />
-              Live AI Venture Audit
-            </span>
-            <span className="px-3 py-1 rounded-full bg-[#f1f4f9] text-[#575775] text-xs font-mono font-medium">
-              Stage: {currentIdea.stage}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-[#ecfdf5] text-[#059669] text-xs font-mono font-medium">
-              Industry: {currentIdea.industry || 'Technology'}
-            </span>
-          </div>
-
+        <div className="space-y-1.5">
           <h1 className="text-2xl sm:text-3xl font-semibold text-[#1f1f47] tracking-tight font-['Outfit',sans-serif]">
             {currentIdea.title}
           </h1>

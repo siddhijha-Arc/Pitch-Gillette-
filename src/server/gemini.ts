@@ -148,29 +148,50 @@ export async function decomposeIdeaWithGemini(
   problems: Omit<ProblemNode, 'isRootCause' | 'isSymptom' | 'uncertaintyScore'>[];
   industry: string;
   tagline: string;
+  causalSummary?: string;
 }> {
-  const systemInstruction = `You are a Principal Venture Architect and Systems Engineer.
-Analyze the provided startup pitch and decompose it into distinct structural problems, bottlenecks, and causal dependencies.
-Autonomously discover and classify the exact industry / vertical (e.g. "AgTech / Autonomous Robotics", "CleanTech / Grid Storage", "FinTech / Cross-Border Settlement", "MedTech / Point-of-Care Diagnostics").
-Extract both explicit and implicit founder assumptions for each problem.
-For each assumption, classify as 'VERIFIED_FACT', 'FOUNDER_ASSUMPTION', or 'AI_HYPOTHESIS' and assign a confidence value between 0.0 and 1.0.
+  const systemInstruction = `You are a Principal Venture Architect and Systems Engineer specializing in Causal Problem Mapping.
+Analyze the provided startup pitch and deconstruct it into an interactive, multi-tiered directed causal network.
+Extract an exhaustive, realistic network of problems (aim for 9 to 16 problems) spanning three distinct structural tiers:
+1. ROOT CAUSES: Foundational structural, technical, regulatory, or economic obstacles that have no parent cause (dependsOnProblemIds: []).
+2. INTERMEDIATE PROBLEMS: Bottlenecks or operational hurdles caused by root causes, which in turn drive further downstream problems (dependsOnProblemIds contains 1 or more root cause IDs).
+3. SYMPTOMS: Observable surface-level manifestations, failure modes, churn, or low conversion that are caused by upstream problems and produce no further structural causes.
+
+CRITICAL CAUSAL GRAPH RULES:
+- Support one-to-many: a single root cause can trigger multiple intermediate problems or symptoms.
+- Support many-to-one: multiple root causes or intermediate problems can converge on a single symptom.
+- Support many-to-many: complex interconnected bottlenecks.
+- Never create circular dependencies (A causes B, B causes A).
+- Categorize each problem: 'MARKET' | 'TECH' | 'FINANCIAL' | 'OPERATIONAL' | 'REGULATORY' | 'COMPETITIVE'.
+- For each problem:
+  * "whyItOccurs": 1-2 sentence concise explanation of why this specific friction occurs.
+  * "supportingEvidence": 1-2 realistic data points, market realities, or technical physics principles.
+  * "founderAssumptions": 1-2 unvalidated beliefs the founder appears to hold.
+  * "evidenceType": 'VERIFIED_FACT' (objective fact), 'FOUNDER_ASSUMPTION' (unproven claim), or 'AI_HYPOTHESIS' (logical inference).
+  * "suggestedAction": 1 crisp, high-impact tactical step the founder should take.
 
 Respond strictly with valid JSON conforming to this schema:
 {
   "tagline": "A punchy 8-12 word positioning tagline",
   "industry": "Identified Industry / Vertical",
+  "causalSummary": "A concise 2-3 sentence explanation in simple plain language explaining the primary critical causal path from root cause through intermediate friction to surface symptoms.",
   "problems": [
     {
       "id": "prob_1",
-      "title": "Clear concise problem label specific to this idea",
-      "description": "2-3 sentences explaining the mechanism of failure or friction",
+      "title": "Concise 3-7 word problem label",
+      "description": "2-3 sentences explaining the exact mechanism of failure",
       "category": "MARKET" | "TECH" | "FINANCIAL" | "OPERATIONAL" | "REGULATORY" | "COMPETITIVE",
       "severity": 8, // 1 to 10
-      "dependsOnProblemIds": ["prob_2"],
+      "dependsOnProblemIds": ["prob_2", "prob_3"], // IDs of upstream causes (empty if root cause)
+      "whyItOccurs": "Why this problem specifically arises",
+      "supportingEvidence": ["Empirical market data or physics constraint"],
+      "founderAssumptions": ["Unproven belief held in pitch"],
+      "evidenceType": "VERIFIED_FACT" | "FOUNDER_ASSUMPTION" | "AI_HYPOTHESIS",
+      "suggestedAction": "Concrete immediate next step for founder",
       "assumptions": [
         {
           "id": "ass_1_1",
-          "statement": "Key assumption being made in the pitch",
+          "statement": "Key assumption made in the pitch",
           "type": "FOUNDER_ASSUMPTION" | "VERIFIED_FACT" | "AI_HYPOTHESIS",
           "confidence": 0.45,
           "isResolved": false
@@ -194,13 +215,13 @@ export async function detectGapsWithGemini(
   apiKey?: string
 ): Promise<GapRecord[]> {
   const systemInstruction = `You are a Venture Capital Due Diligence Director.
-Audit this specific startup pitch across the 6 venture pillars:
-- TAM_MARKET (Total Addressable Market, bottom-up sizing, market expansion)
-- TECH_VIABILITY (Algorithmic moat, infrastructure scaling, hardware/cloud latency, IP)
-- UNIT_ECONOMICS (CAC, LTV, gross margin, pricing power, burn multiple)
-- DISTRIBUTION (Go-to-market channels, virality, channel partnerships, sales velocity)
-- LEGAL (Regulatory compliance, data privacy, liability exposure, certifications)
-- MOAT (Defensibility, switching costs, network effects, data flywheels)
+Audit this specific startup pitch comprehensively. Do NOT restrict the count or limit yourself to a few items—generate as many granular gaps, vulnerabilities, and edge-case failure modes as possible (aim for 10 to 20 distinct gap records) across the venture pillars:
+- TAM_MARKET (Total Addressable Market, bottom-up sizing, market expansion, adoption friction)
+- TECH_VIABILITY (Algorithmic moat, infrastructure scaling, hardware/cloud latency, IP, tech debt, security)
+- UNIT_ECONOMICS (CAC, LTV, gross margin, pricing power, burn multiple, capital intensity)
+- DISTRIBUTION (Go-to-market channels, virality, channel partnerships, sales cycle velocity, customer acquisition bottlenecks)
+- LEGAL (Regulatory compliance, data privacy, liability exposure, certifications, IP protection, jurisdictional barriers)
+- MOAT (Defensibility, switching costs, network effects, data flywheels, competitor retaliation)
 
 Make every single gap deeply tailored to the specific industry and pitch mechanics.
 Output JSON:
@@ -237,7 +258,7 @@ export async function generateSolutionsWithGemini(
   apiKey?: string
 ): Promise<SolutionCandidate[]> {
   const systemInstruction = `You are an elite Startup Strategy Consultant and CTO.
-For the provided root problems and critical gaps, formulate 3-4 distinct strategic solutions specifically addressing this idea's technology and market.
+For the provided root problems and critical gaps, formulate 6 to 10 distinct strategic solutions specifically addressing this idea's technology, product architecture, and market. Do NOT restrict the count—provide as many robust alternative tactical options as possible.
 For each solution, assign raw 1-10 scores across the 5 evaluation criteria:
 - feasibility: Technical implementation feasibility (10 = highly feasible with existing tech)
 - costEfficiency: Capital efficiency (10 = very cheap to implement; 1 = burns millions)
@@ -269,7 +290,7 @@ Output JSON:
   const effectiveTitle = title || rootProblems[0]?.title || 'Startup Core';
   const prompt = `Startup Title: ${effectiveTitle}\nPitch Narrative: ${pitch}\nRoot Problems:\n${JSON.stringify(
     rootProblems.map((p) => ({ id: p.id, title: p.title, description: p.description }))
-  )}\n\nCritical Gaps:\n${JSON.stringify(gaps.slice(0, 4).map((g) => ({ title: g.title, deficiency: g.deficiency })))}`;
+  )}\n\nCritical Gaps:\n${JSON.stringify(gaps.map((g) => ({ title: g.title, deficiency: g.deficiency })))}`;
 
   const res = await callGeminiRestJson<{ solutions: SolutionCandidate[] }>(prompt, systemInstruction, apiKey);
   return res.solutions || [];
@@ -320,7 +341,7 @@ Output JSON:
 }`;
 
   const prompt = `Pitch Title: ${idea.title}\nTagline: ${idea.tagline}\nIndustry: ${idea.industry}\nPitch:\n${idea.rawPitch}\n\nTop Solutions:\n${JSON.stringify(
-    idea.solutions.slice(0, 3).map((s) => ({ title: s.title, strategy: s.strategySummary }))
+    idea.solutions.map((s) => ({ title: s.title, strategy: s.strategySummary }))
   )}`;
 
   const res = await callGeminiRestJson<{ critiques: AgentCritique[] }>(prompt, systemInstruction, apiKey);
@@ -355,8 +376,8 @@ Output JSON:
   ]
 }`;
 
-  const prompt = `Startup: ${title}\nPitch: ${pitch}\nGaps:\n${JSON.stringify(gaps.slice(0, 3))}\nProblems:\n${JSON.stringify(
-    problems.slice(0, 3).map((p) => ({ id: p.id, title: p.title, assumptions: p.assumptions }))
+  const prompt = `Startup: ${title}\nPitch: ${pitch}\nGaps:\n${JSON.stringify(gaps)}\nProblems:\n${JSON.stringify(
+    problems.map((p) => ({ id: p.id, title: p.title, assumptions: p.assumptions }))
   )}`;
 
   const res = await callGeminiRestJson<{ questions: any[] }>(prompt, systemInstruction, apiKey);

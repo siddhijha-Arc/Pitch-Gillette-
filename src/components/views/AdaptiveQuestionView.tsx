@@ -58,13 +58,10 @@ export const AdaptiveQuestionView: React.FC<AdaptiveQuestionViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs sm:text-sm font-mono">
-          <span className="px-3.5 py-1.5 rounded-full bg-[#ffedd5] text-[#ea580c] font-semibold">
-            {unanswered.length} Gaps Pending
-          </span>
-          <span className="px-3.5 py-1.5 rounded-full bg-[#c1f6e0] text-[#1f1f47] font-semibold">
-            {answered.length} Resolved
-          </span>
+        <div className="flex items-center gap-2.5 text-xs text-[#64748b] font-medium">
+          <span>{unanswered.length} Pending</span>
+          <span>•</span>
+          <span>{answered.length} Resolved</span>
         </div>
       </div>
 
@@ -72,14 +69,13 @@ export const AdaptiveQuestionView: React.FC<AdaptiveQuestionViewProps> = ({
       {activeQuestion ? (
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-8 space-y-6 shadow-[rgba(73,46,107,0.08)_0px_3px_16px]"
+          className="bg-white rounded-2xl border border-[#eaedf6] p-6 sm:p-8 space-y-6 shadow-sm"
         >
           <div className="flex items-center justify-between border-b border-[#eaedf6] pb-4">
-            <span className="text-xs sm:text-sm font-semibold px-3.5 py-1.5 rounded-full bg-[#d6dbf5] text-[#1f1f47] flex items-center gap-2">
+            <span className="text-xs font-bold text-[#576cdb] uppercase tracking-wider flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[#576cdb]" />
-              Priority Question ({activeQuestion.priorityScore.toFixed(1)})
+              Critical Clarification Question
             </span>
-            <span className="text-xs sm:text-sm text-[#6c7693] font-mono">ID: {activeQuestion.id}</span>
           </div>
 
           <div>

@@ -34,6 +34,15 @@ export interface AssumptionItem {
   isResolved: boolean;
 }
 
+export type ProblemNodeType = 'ROOT_CAUSE' | 'INTERMEDIATE' | 'SYMPTOM';
+
+export interface CausalEdge {
+  fromId: string; // cause
+  toId: string;   // effect
+  relationshipLabel?: string; // e.g. "Triggers", "Amplifies", "Constrains", "Directly drives"
+  strength?: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
 export interface ProblemNode {
   id: string;
   ideaId?: string;
@@ -41,9 +50,16 @@ export interface ProblemNode {
   description: string;
   category: ProblemCategory;
   severity: number; // 1 - 10
+  nodeType?: ProblemNodeType; // 'ROOT_CAUSE' | 'INTERMEDIATE' | 'SYMPTOM'
   isRootCause: boolean; // Computed by graph in/out-degree centrality
   isSymptom: boolean;
-  dependsOnProblemIds: string[]; // Directed edge: this problem depends on / is caused by
+  isIntermediate?: boolean;
+  dependsOnProblemIds: string[]; // Directed edge: this problem depends on / is caused by (parent causes)
+  whyItOccurs?: string;
+  supportingEvidence?: string[];
+  founderAssumptions?: string[];
+  suggestedAction?: string;
+  evidenceType?: 'VERIFIED_FACT' | 'AI_HYPOTHESIS' | 'FOUNDER_ASSUMPTION';
   assumptions: AssumptionItem[];
   uncertaintyScore: number; // 0 (verified) to 1 (purely speculative)
 }
@@ -199,6 +215,7 @@ export interface StartupIdea {
   updatedAt: string;
   currentVersion: number;
   versions: IdeaVersion[];
+  causalSummary?: string;
   problems: ProblemNode[];
   gaps: GapRecord[];
   solutions: SolutionCandidate[];

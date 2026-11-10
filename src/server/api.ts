@@ -163,11 +163,16 @@ router.post('/ideas', async (req: Request, res: Response) => {
 
     const enrichedProblems = decomposition.problems.map((prob) => {
       const nodeAnalysis = graphAnalysis.nodeAnalyses[prob.id];
+      const isRoot = nodeAnalysis ? nodeAnalysis.isRootCause : (prob.dependsOnProblemIds?.length === 0);
+      const isSymp = nodeAnalysis ? nodeAnalysis.isSymptom : false;
+      const isInter = !isRoot && !isSymp;
       return {
         ...prob,
         ideaId: id,
-        isRootCause: nodeAnalysis?.isRootCause ?? true,
-        isSymptom: nodeAnalysis?.isSymptom ?? false,
+        isRootCause: isRoot,
+        isSymptom: isSymp,
+        isIntermediate: isInter,
+        nodeType: (isRoot ? 'ROOT_CAUSE' : isInter ? 'INTERMEDIATE' : 'SYMPTOM') as any,
         uncertaintyScore: nodeAnalysis?.uncertaintyRating ?? 0.5,
       };
     });
@@ -213,6 +218,7 @@ router.post('/ideas', async (req: Request, res: Response) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       currentVersion: 1,
+      causalSummary: decomposition.causalSummary || '',
       topsisWeights: defaultWeights,
       problems: enrichedProblems,
       gaps: mappedGaps,
@@ -260,16 +266,23 @@ router.post('/ideas/:id/decompose', async (req: Request, res: Response) => {
 
     const enrichedProblems = decomposition.problems.map((prob) => {
       const nodeAnalysis = graphAnalysis.nodeAnalyses[prob.id];
+      const isRoot = nodeAnalysis ? nodeAnalysis.isRootCause : (prob.dependsOnProblemIds?.length === 0);
+      const isSymp = nodeAnalysis ? nodeAnalysis.isSymptom : false;
+      const isInter = !isRoot && !isSymp;
       return {
         ...prob,
-        isRootCause: nodeAnalysis?.isRootCause ?? true,
-        isSymptom: nodeAnalysis?.isSymptom ?? false,
+        ideaId: idea.id,
+        isRootCause: isRoot,
+        isSymptom: isSymp,
+        isIntermediate: isInter,
+        nodeType: (isRoot ? 'ROOT_CAUSE' : isInter ? 'INTERMEDIATE' : 'SYMPTOM') as any,
         uncertaintyScore: nodeAnalysis?.uncertaintyRating ?? 0.5,
       };
     });
 
     idea.tagline = decomposition.tagline || idea.tagline;
     idea.industry = decomposition.industry || idea.industry;
+    idea.causalSummary = decomposition.causalSummary || idea.causalSummary;
     idea.problems = enrichedProblems;
     idea.updatedAt = new Date().toISOString();
     ideasDatabase.set(idea.id, idea);

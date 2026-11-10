@@ -362,11 +362,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9fb] text-[#1f1f47] flex font-sans selection:bg-[#576cdb]/30 selection:text-white">
-      {/* Sidebar Navigation Drawer */}
-      <SidebarNavigation
-        activeTab={activeTab}
-        onTabChange={(tab) => {
+    <div className="min-h-screen bg-[#f8f9fd] text-[#1f1f47] flex flex-col font-sans selection:bg-[#576cdb]/30 selection:text-white">
+      {/* Top Header Bar - Exact Reference Replica spanning full width */}
+      <Header
+        onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+        onOpenApiKeyModal={() => {
+          setIsQuotaExhaustedError(false);
+          setIsApiKeyModalOpen(true);
+        }}
+        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+        idea={currentIdea}
+        onNavigateTab={(tab) => {
           setActiveTab(tab);
           if (tab === 'questions' && currentIdea && (!currentIdea.questions || currentIdea.questions.length === 0)) {
             handleFetchNextQuestion();
@@ -375,31 +381,42 @@ export default function App() {
             handleGenerateDeck();
           }
         }}
-        idea={currentIdea}
-        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
-        onOpenApiKeyModal={() => {
-          setIsQuotaExhaustedError(false);
-          setIsApiKeyModalOpen(true);
-        }}
-        onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
-        isExporting={isExporting}
-        onOpenNewIdea={() => {
-          setActiveTab('intake');
-          setIsCreatingIdea(true);
-        }}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebar}
-        isMobileOpen={isMobileDrawerOpen}
-        onCloseMobile={() => setIsMobileDrawerOpen(false)}
       />
 
-      {/* Main Content Pane */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header Bar - Clean and minimal with app name */}
-        <Header onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)} />
+      {/* Main Workspace Body - Sidebar on Left with curved top + Content on Right */}
+      <div className="flex-1 flex min-h-0 relative">
+        {/* Sidebar Navigation Drawer */}
+        <SidebarNavigation
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (tab === 'questions' && currentIdea && (!currentIdea.questions || currentIdea.questions.length === 0)) {
+              handleFetchNextQuestion();
+            }
+            if (tab === 'deck' && currentIdea && (!currentIdea.pitchDeck || currentIdea.pitchDeck.length === 0)) {
+              handleGenerateDeck();
+            }
+          }}
+          idea={currentIdea}
+          onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+          onOpenApiKeyModal={() => {
+            setIsQuotaExhaustedError(false);
+            setIsApiKeyModalOpen(true);
+          }}
+          onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
+          isExporting={isExporting}
+          onOpenNewIdea={() => {
+            setActiveTab('intake');
+            setIsCreatingIdea(true);
+          }}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={handleToggleSidebar}
+          isMobileOpen={isMobileDrawerOpen}
+          onCloseMobile={() => setIsMobileDrawerOpen(false)}
+        />
 
-        {/* Main Content Area - Full screen width with generous padding */}
-        <main className="flex-1 w-full px-6 sm:px-10 py-6 pb-20 overflow-x-hidden">
+        {/* Main Content Area - Full width with generous padding */}
+        <main className="flex-1 min-w-0 px-6 sm:px-10 py-6 pb-20 overflow-y-auto overflow-x-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

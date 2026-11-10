@@ -290,9 +290,6 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#eaedf6] pb-6"
       >
         <div>
-          <span className="text-xs font-semibold text-[#576cdb] tracking-wider uppercase block mb-1 font-mono">
-            Gillette Pitch Engine • Expert Council
-          </span>
           <h1 className="text-3xl sm:text-4xl font-light text-[#1f1f47] tracking-[-0.03em] font-sans">
             Evaluation Council
           </h1>
