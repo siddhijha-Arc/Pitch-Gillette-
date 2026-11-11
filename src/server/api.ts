@@ -22,6 +22,7 @@ import {
   runMultiAgentEvaluationWithGemini,
   synthesizeImprovedPitchWithGemini,
   chatWithJudgePersonaGemini,
+  getDefaultGeminiKey,
   DEFAULT_GEMINI_KEY,
 } from './gemini.ts';
 import { generatePptxBuffer } from './pptxGenerator.ts';
@@ -80,7 +81,7 @@ router.get('/test/algorithms', (_req: Request, res: Response) => {
  * GET /api/gemini/status - Verify Gemini API connection & active quota
  */
 router.get('/gemini/status', async (req: Request, res: Response) => {
-  const apiKey = getApiKey(req) || DEFAULT_GEMINI_KEY;
+  const apiKey = getApiKey(req) || getDefaultGeminiKey();
   try {
     const resTest = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',

@@ -15,11 +15,16 @@ import {
   StartupIdea,
 } from '../types/index.ts';
 
-// Default user-provided key & environment fallback
-export const DEFAULT_GEMINI_KEY =
-  process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'
-    ? process.env.GEMINI_API_KEY.trim()
-    : '';
+// Dynamic environment fallback key resolver
+export function getDefaultGeminiKey(): string {
+  const envKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || '';
+  if (envKey && envKey.trim() !== '' && envKey.trim() !== 'MY_GEMINI_API_KEY') {
+    return envKey.trim();
+  }
+  return '';
+}
+
+export const DEFAULT_GEMINI_KEY = getDefaultGeminiKey();
 
 // High-availability model cascade verified to have active quota
 const MODELS_CASCADE = [
@@ -45,7 +50,7 @@ async function callGeminiRestJson<T>(
   systemInstruction: string,
   userApiKey?: string
 ): Promise<T> {
-  const apiKey = (userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : DEFAULT_GEMINI_KEY);
+  const apiKey = userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : getDefaultGeminiKey();
   if (!apiKey) {
     throw new QuotaExceededError(
       'GEMINI_API_KEY is not configured. Set the GEMINI_API_KEY environment variable on Render or enter your key in the UI.'
@@ -480,7 +485,7 @@ async function callGeminiRestText(
   systemInstruction: string,
   userApiKey?: string
 ): Promise<string> {
-  const apiKey = userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : DEFAULT_GEMINI_KEY;
+  const apiKey = userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : getDefaultGeminiKey();
   if (!apiKey) {
     throw new QuotaExceededError(
       'GEMINI_API_KEY is not configured. Set the GEMINI_API_KEY environment variable on Render or enter your key in the UI.'
