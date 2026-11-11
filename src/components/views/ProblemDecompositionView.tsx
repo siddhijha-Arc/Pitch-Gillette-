@@ -26,18 +26,13 @@ import {
   ZoomOut,
   Maximize2,
   ChevronRight,
-  ArrowRight,
   ShieldAlert,
   AlertTriangle,
   CheckCircle2,
-  HelpCircle,
   Activity,
   GitFork,
-  ArrowLeft,
   Info,
   Compass,
-  BookOpen,
-  Filter,
 } from 'lucide-react';
 import { ProblemNode, StartupIdea, ProblemNodeType } from '../../types/index.ts';
 
@@ -81,9 +76,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
   onOpenAppGuide,
 }) => {
   const problems = useMemo(() => idea.problems || [], [idea.problems]);
-
-  // View Mode: 'CHAIN' (simplified columns) vs 'GRAPH' (2D canvas)
-  const [viewMode, setViewMode] = useState<'CHAIN' | 'GRAPH'>('CHAIN');
 
   // UI state
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -571,24 +563,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
     return { node: bottleneckNode, count: maxDescendants };
   }, [rootCausesList, graphTopology.descendantsMap]);
 
-  // Filtered lists for the 3 columns in Simplified Chain view
-  const filterProblem = (p: ProblemNode) => {
-    if (selectedCategory !== 'ALL' && p.category !== selectedCategory) return false;
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase();
-      return (
-        p.title.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  };
-
-  const filteredRoots = rootCausesList.filter(filterProblem);
-  const filteredIntermediates = intermediateList.filter(filterProblem);
-  const filteredSymptoms = symptomsList.filter(filterProblem);
-
   return (
     <div className="w-full space-y-6 font-['Plus_Jakarta_Sans',sans-serif] select-none">
       
@@ -740,42 +714,78 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
         )}
       </div>
 
-      {/* 4. View Mode Switcher & Toolbar */}
+      {/* 4. Causal Graph Controls & Filters */}
       <div className="p-4 rounded-2xl bg-white border border-[#eaedf6] shadow-xs space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaedf6] pb-3">
-          
-          {/* View Mode Toggle: Simplified Flow vs Full Graph */}
-          <div className="flex items-center bg-[#f1f4fb] p-1 rounded-2xl border border-[#eaedf6]">
-            <button
-              onClick={() => setViewMode('CHAIN')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                viewMode === 'CHAIN'
-                  ? 'bg-white text-[#576cdb] shadow-xs'
-                  : 'text-[#64748b] hover:text-[#0f172a]'
-              }`}
-            >
-              <Compass className="w-4 h-4" />
-              <span>Simplified Flow (Easy & Clear)</span>
-            </button>
+        {/* Active Node Selection & Causal Tracing Bar */}
+        {activeNode ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaedf6] pb-3">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#576cdb] animate-ping shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#576cdb]">
+                  Selected Problem:
+                </span>
+                <span className="text-xs font-bold text-[#0f172a] ml-1.5 truncate">
+                  {activeNode.title}
+                </span>
+                <span className="text-[11px] text-[#64748b] ml-2">
+                  ({selectedNodeConnectedCauses.length} causes, {selectedNodeConnectedEffects.length} effects)
+                </span>
+              </div>
+            </div>
 
-            <button
-              onClick={() => setViewMode('GRAPH')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                viewMode === 'GRAPH'
-                  ? 'bg-white text-[#576cdb] shadow-xs'
-                  : 'text-[#64748b] hover:text-[#0f172a]'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Interactive 2D Graph (Advanced)</span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              <span className="text-xs text-[#64748b] font-medium mr-1">Trace:</span>
+              <button
+                onClick={() => setTraceMode('NONE')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  traceMode === 'NONE'
+                    ? 'bg-[#576cdb] text-white shadow-xs'
+                    : 'bg-[#f1f4fb] text-[#64748b] hover:text-[#0f172a]'
+                }`}
+              >
+                Direct Links
+              </button>
+              <button
+                onClick={() => setTraceMode('UPSTREAM')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  traceMode === 'UPSTREAM'
+                    ? 'bg-[#e11d48] text-white shadow-xs'
+                    : 'bg-[#fff5f5] text-[#e11d48] hover:bg-[#ffe4e6]'
+                }`}
+              >
+                Upstream Causes
+              </button>
+              <button
+                onClick={() => setTraceMode('DOWNSTREAM')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  traceMode === 'DOWNSTREAM'
+                    ? 'bg-[#eab308] text-white shadow-xs'
+                    : 'bg-[#fefce8] text-[#a16207] hover:bg-[#fef9c3]'
+                }`}
+              >
+                Downstream Effects
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedNodeId(null);
+                  setTraceMode('NONE');
+                }}
+                className="p-1.5 rounded-xl text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f4fb] transition-colors cursor-pointer"
+                title="Clear selection"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-
-          <div className="text-xs text-[#64748b] font-medium flex items-center gap-2">
-            <Info className="w-4 h-4 text-[#576cdb]" />
-            <span>Click any problem card to trace connected causes and symptoms.</span>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#eaedf6] pb-3">
+            <div className="text-xs text-[#64748b] font-medium flex items-center gap-2">
+              <Info className="w-4 h-4 text-[#576cdb]" />
+              <span>Click any node to trace its causal chain • Drag nodes to reposition • Zoom & Pan to explore</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Search & Category Filter */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
@@ -819,308 +829,8 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
         </div>
       </div>
 
-      {/* 5A. VIEW MODE 1: SIMPLIFIED CAUSAL FLOW (BEGINNER-FRIENDLY DEFAULT) */}
-      {viewMode === 'CHAIN' && (
-        <div className="space-y-6">
-          {/* Interactive Causal Chain Breadcrumb Bar */}
-          {activeNode ? (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#f8f9ff] via-white to-[#f8f9ff] border border-[#d6dbf5] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-3 h-3 rounded-full bg-[#576cdb] animate-ping" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#576cdb] uppercase tracking-wider">
-                      Selected Causal Path
-                    </span>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-[#e0e7ff] text-[#4338ca]">
-                      {activeNode.category}
-                    </span>
-                  </div>
-                  <h4 className="text-sm sm:text-base font-bold text-[#0f172a] mt-0.5">
-                    {activeNode.title}
-                  </h4>
-                  <div className="text-xs text-[#64748b] mt-0.5">
-                    Triggered by {selectedNodeConnectedCauses.length} upstream cause(s) • Directly creates {selectedNodeConnectedEffects.length} downstream ripple effect(s).
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => handleOpenDetail(activeNode.id)}
-                  className="px-4 py-2 rounded-full bg-[#576cdb] hover:bg-[#475cc7] text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Inspect Full Details</span>
-                </button>
-
-                <button
-                  onClick={() => setSelectedNodeId(null)}
-                  className="p-2 rounded-full text-[#64748b] hover:text-[#0f172a] hover:bg-[#f1f4fb] transition-colors cursor-pointer"
-                  title="Clear selection"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            /* Educational Founder Advice Box */
-            <div className="p-4 rounded-2xl bg-[#eff6ff] border border-[#bfdbfe] flex items-center gap-3.5 text-xs text-[#1e40af]">
-              <Sparkles className="w-5 h-5 text-[#2563eb] shrink-0" />
-              <div>
-                <span className="font-bold">Founder Rule: </span>
-                <span>
-                  Start by reading the <strong>Root Causes (Column 1)</strong>. Fixing a symptom (like running ads to fix high customer churn) wastes capital; solving the root cause eliminates all downstream bottlenecks and symptoms automatically.
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* 3 Progressive Columns Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Column 1: Root Causes (Origin Problems) */}
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#fff5f5] border border-[#fca5a5] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#f43f5e]" />
-                  <span className="text-xs font-bold text-[#e11d48] uppercase tracking-wider">
-                    1. Root Causes ({filteredRoots.length})
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-[#9f1239]">
-                  Origin Issues
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {filteredRoots.length === 0 ? (
-                  <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] text-center text-xs text-[#64748b]">
-                    No root causes match search or filter.
-                  </div>
-                ) : (
-                  filteredRoots.map((p) => {
-                    const isSelected = selectedNodeId === p.id;
-                    const isPartOfChain =
-                      highlightedState.hasActiveHighlight &&
-                      highlightedState.highlightedNodeIds.has(p.id);
-
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => handleSelectNode(p.id)}
-                        className={`p-5 rounded-2xl bg-white border transition-all duration-200 cursor-pointer space-y-3 ${
-                          isSelected
-                            ? 'border-[#e11d48] shadow-lg ring-3 ring-[#ffe4e6] bg-[#fffbfb]'
-                            : isPartOfChain
-                            ? 'border-[#fca5a5] shadow-md bg-[#fffdfd]'
-                            : 'border-[#eaedf6] hover:border-[#fca5a5] hover:shadow-xs'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#f43f5e]" />
-                            <span className="text-xs font-semibold text-[#64748b]">
-                              {p.category}
-                            </span>
-                          </div>
-                          <span className="text-[11px] font-bold text-[#e11d48]">
-                            Root Origin
-                          </span>
-                        </div>
-
-                        <h4 className="text-sm font-bold text-[#0f172a] leading-snug">
-                          {p.title}
-                        </h4>
-
-                        <p className="text-xs text-[#64748b] leading-relaxed line-clamp-2">
-                          {p.description}
-                        </p>
-
-                        <div className="pt-2 border-t border-[#eaedf6] flex items-center justify-between text-xs">
-                          <span className="text-[#8a94a6] text-[11px]">
-                            Triggers {graphTopology.descendantsMap.get(p.id)?.size || 0} downstream problem(s)
-                          </span>
-                          <button
-                            onClick={(e) => handleOpenDetail(p.id, e)}
-                            className="text-[#576cdb] hover:underline font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Inspect</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Column 2: Intermediate Bottlenecks (Friction Hurdles) */}
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#fff7ed] border border-[#fdba74] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#f97316]" />
-                  <span className="text-xs font-bold text-[#ea580c] uppercase tracking-wider">
-                    2. Bottlenecks ({filteredIntermediates.length})
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-[#9a3412]">
-                  Cascading Hurdles
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {filteredIntermediates.length === 0 ? (
-                  <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] text-center text-xs text-[#64748b]">
-                    No intermediate bottlenecks match search or filter.
-                  </div>
-                ) : (
-                  filteredIntermediates.map((p) => {
-                    const isSelected = selectedNodeId === p.id;
-                    const isPartOfChain =
-                      highlightedState.hasActiveHighlight &&
-                      highlightedState.highlightedNodeIds.has(p.id);
-
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => handleSelectNode(p.id)}
-                        className={`p-5 rounded-2xl bg-white border transition-all duration-200 cursor-pointer space-y-3 ${
-                          isSelected
-                            ? 'border-[#ea580c] shadow-lg ring-3 ring-[#ffedd5] bg-[#fffdfa]'
-                            : isPartOfChain
-                            ? 'border-[#fdba74] shadow-md bg-[#fffffd]'
-                            : 'border-[#eaedf6] hover:border-[#fdba74] hover:shadow-xs'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#f97316]" />
-                            <span className="text-xs font-semibold text-[#64748b]">
-                              {p.category}
-                            </span>
-                          </div>
-                          <span className="text-[11px] font-bold text-[#ea580c]">
-                            Bottleneck
-                          </span>
-                        </div>
-
-                        <h4 className="text-sm font-bold text-[#0f172a] leading-snug">
-                          {p.title}
-                        </h4>
-
-                        <p className="text-xs text-[#64748b] leading-relaxed line-clamp-2">
-                          {p.description}
-                        </p>
-
-                        <div className="pt-2 border-t border-[#eaedf6] flex items-center justify-between text-xs">
-                          <span className="text-[#8a94a6] text-[11px]">
-                            ← {p.dependsOnProblemIds?.length || 1} cause | → {graphTopology.adj.get(p.id)?.size || 1} effect
-                          </span>
-                          <button
-                            onClick={(e) => handleOpenDetail(p.id, e)}
-                            className="text-[#576cdb] hover:underline font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Inspect</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Column 3: Observable Symptoms (Visible Surface Pain) */}
-            <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-[#fefce8] border border-[#fde047] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#eab308]" />
-                  <span className="text-xs font-bold text-[#a16207] uppercase tracking-wider">
-                    3. Symptoms ({filteredSymptoms.length})
-                  </span>
-                </div>
-                <span className="text-[11px] font-semibold text-[#854d0e]">
-                  Observable Pain
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                {filteredSymptoms.length === 0 ? (
-                  <div className="p-6 rounded-2xl bg-white border border-[#eaedf6] text-center text-xs text-[#64748b]">
-                    No observable symptoms match search or filter.
-                  </div>
-                ) : (
-                  filteredSymptoms.map((p) => {
-                    const isSelected = selectedNodeId === p.id;
-                    const isPartOfChain =
-                      highlightedState.hasActiveHighlight &&
-                      highlightedState.highlightedNodeIds.has(p.id);
-
-                    return (
-                      <div
-                        key={p.id}
-                        onClick={() => handleSelectNode(p.id)}
-                        className={`p-5 rounded-2xl bg-white border transition-all duration-200 cursor-pointer space-y-3 ${
-                          isSelected
-                            ? 'border-[#ca8a04] shadow-lg ring-3 ring-[#fef9c3] bg-[#fffff8]'
-                            : isPartOfChain
-                            ? 'border-[#fde047] shadow-md bg-[#fffffa]'
-                            : 'border-[#eaedf6] hover:border-[#fde047] hover:shadow-xs'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[#eab308]" />
-                            <span className="text-xs font-semibold text-[#64748b]">
-                              {p.category}
-                            </span>
-                          </div>
-                          <span className="text-[11px] font-bold text-[#a16207]">
-                            Surface Symptom
-                          </span>
-                        </div>
-
-                        <h4 className="text-sm font-bold text-[#0f172a] leading-snug">
-                          {p.title}
-                        </h4>
-
-                        <p className="text-xs text-[#64748b] leading-relaxed line-clamp-2">
-                          {p.description}
-                        </p>
-
-                        <div className="pt-2 border-t border-[#eaedf6] flex items-center justify-between text-xs">
-                          <span className="text-[#8a94a6] text-[11px]">
-                            Stemming from {p.dependsOnProblemIds?.length || 1} upstream cause(s)
-                          </span>
-                          <button
-                            onClick={(e) => handleOpenDetail(p.id, e)}
-                            className="text-[#576cdb] hover:underline font-bold text-[11px] flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Inspect</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* 5B. VIEW MODE 2: INTERACTIVE 2D GRAPH CANVAS (ADVANCED SPATIAL VIEW) */}
-      {viewMode === 'GRAPH' && (
-        <div className="relative w-full h-[620px] sm:h-[680px] bg-[#f8f9fd] rounded-3xl border border-[#eaedf6] overflow-hidden shadow-inner">
+      {/* 5. Interactive Causal Graph Canvas */}
+      <div className="relative w-full h-[620px] sm:h-[680px] bg-[#f8f9fd] rounded-3xl border border-[#eaedf6] overflow-hidden shadow-inner">
           <div
             className="absolute inset-0 pointer-events-none opacity-40"
             style={{
@@ -1305,7 +1015,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
             </div>
           </div>
         </div>
-      )}
 
       {/* 6. Slide-Over Node Detail Panel */}
       <AnimatePresence>
