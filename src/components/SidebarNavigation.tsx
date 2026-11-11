@@ -52,6 +52,7 @@ interface SidebarNavigationProps {
   onToggleCollapse: () => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  isDisabled?: boolean;
 }
 
 export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
@@ -66,6 +67,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
   onToggleCollapse,
   isMobileOpen,
   onCloseMobile,
+  isDisabled = false,
 }) => {
   const unresolvedQuestions = idea?.questions?.filter((q) => !q.isAnswered).length || 0;
   const fatalGaps = idea?.gaps?.filter((g) => g.severity === 'FATAL_FLAW').length || 0;
@@ -177,16 +179,18 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         {/* Top Action Button: Exact match to "Upload New Files" White Pill */}
         <div className="px-4 py-2">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={isDisabled ? undefined : { scale: 1.02 }}
+            whileTap={isDisabled ? undefined : { scale: 0.98 }}
+            disabled={isDisabled}
             onClick={() => {
+              if (isDisabled) return;
               onOpenNewIdea();
               if (onCloseMobile) onCloseMobile();
             }}
-            title="Upload New Pitch Idea"
-            className={`w-full rounded-full bg-white hover:bg-white/95 text-[#576cdb] font-bold text-sm shadow-[0_6px_20px_rgba(0,0,0,0.14)] transition-all cursor-pointer flex items-center justify-center gap-2 ${
-              isCollapsed ? 'p-3' : 'py-3.5 px-5'
-            }`}
+            title={isDisabled ? 'Evaluation in progress - Navigation locked' : 'Upload New Pitch Idea'}
+            className={`w-full rounded-full bg-white hover:bg-white/95 text-[#576cdb] font-bold text-sm shadow-[0_6px_20px_rgba(0,0,0,0.14)] transition-all flex items-center justify-center gap-2 ${
+              isDisabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : 'cursor-pointer'
+            } ${isCollapsed ? 'p-3' : 'py-3.5 px-5'}`}
           >
             <Plus className="h-4.5 w-4.5 stroke-[2.8] text-[#576cdb] shrink-0" />
             {!isCollapsed && <span className="tracking-tight">Upload New Pitch</span>}
@@ -202,14 +206,20 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
             return (
               <button
                 key={item.id}
+                disabled={isDisabled}
                 onClick={() => {
+                  if (isDisabled) return;
                   onTabChange(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                title={isCollapsed ? item.label : undefined}
+                title={isDisabled ? 'Evaluation in progress — Navigation locked' : isCollapsed ? item.label : undefined}
                 className={`w-full flex items-center ${
                   isCollapsed ? 'justify-center px-2 py-3' : 'justify-between px-4 py-2.5'
-                } rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                } rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isDisabled
+                    ? 'opacity-40 cursor-not-allowed pointer-events-none text-white/50'
+                    : 'cursor-pointer'
+                } ${
                   isActive
                     ? 'bg-white/20 text-white font-semibold backdrop-blur-xs shadow-xs'
                     : 'text-white/80 hover:text-white hover:bg-white/10'

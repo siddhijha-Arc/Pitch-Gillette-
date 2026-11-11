@@ -280,6 +280,13 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
     show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const } },
   };
 
+  // Auto-run Evaluation Council if not yet deliberated
+  React.useEffect(() => {
+    if ((!idea.agentCritiques || idea.agentCritiques.length === 0) && !isLoading) {
+      onRunAgents();
+    }
+  }, [idea.agentCritiques, isLoading, onRunAgents]);
+
   return (
     <div className="space-y-6 w-full mx-auto py-2 font-sans">
       {/* 1. Top Header with Run Deliberation Action */}

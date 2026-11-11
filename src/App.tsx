@@ -20,6 +20,7 @@ import { AlgorithmInspectionModal } from './components/modals/AlgorithmInspectio
 import { ApiKeyModal } from './components/ApiKeyModal.tsx';
 import { StartupIdea, TopsisCriteriaWeights } from './types/index.ts';
 import { DeckThemeName } from './server/pptxGenerator.ts';
+import { EvaluationProgressBar, EvaluationStepInfo } from './components/EvaluationProgressBar.tsx';
 
 export default function App() {
   const [ideas, setIdeas] = useState<Array<{ id: string; title: string; overallReadinessScore: number }>>([]);
@@ -27,6 +28,12 @@ export default function App() {
   const [currentIdea, setCurrentIdea] = useState<StartupIdea | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('intake');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingStep, setLoadingStep] = useState<EvaluationStepInfo>({
+    percent: 15,
+    message: 'Analyzing Pitch & Vertical Classification...',
+    submessage: 'Parsing problem statement and business model mechanics...',
+    currentStepIndex: 1,
+  });
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isAlgorithmsModalOpen, setIsAlgorithmsModalOpen] = useState<boolean>(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -114,12 +121,44 @@ export default function App() {
   const handleDeconstruct = async () => {
     if (!currentIdea) return;
     setIsLoading(true);
+    setLoadingStep({
+      percent: 25,
+      message: 'Re-analyzing Causal Problem DAG & Root Causes...',
+      submessage: 'Updating directed cause-and-effect nodes...',
+      currentStepIndex: 2,
+    });
+
     try {
       const res1 = await apiFetch(`/api/ideas/${currentIdea.id}/decompose`, { method: 'POST' });
       await res1.json();
 
+      setLoadingStep({
+        percent: 55,
+        message: 'Auditing 6-Pillar Venture Gaps (TAM, Tech, Economics, GTM, Legal, Moat)...',
+        submessage: 'Evaluating risk levels across all venture dimensions...',
+        currentStepIndex: 3,
+      });
+
       const res2 = await apiFetch(`/api/ideas/${currentIdea.id}/gaps`, { method: 'POST' });
       await res2.json();
+
+      setLoadingStep({
+        percent: 85,
+        message: 'Re-running 6-Persona Evaluation Council...',
+        submessage: 'Updating judge consensus and persona critiques...',
+        currentStepIndex: 5,
+      });
+
+      try {
+        await apiFetch(`/api/ideas/${currentIdea.id}/agents/evaluate`, { method: 'POST' });
+      } catch (e) {}
+
+      setLoadingStep({
+        percent: 100,
+        message: 'Re-analysis Complete!',
+        submessage: 'Updating workspace views...',
+        currentStepIndex: 6,
+      });
 
       await fetchIdeaDetails(currentIdea.id);
       setActiveTab('decomposition');
@@ -326,34 +365,113 @@ export default function App() {
     stage: string = 'CONCEPT'
   ) => {
     setIsLoading(true);
+    setLoadingStep({
+      percent: 15,
+      message: 'Analyzing Pitch & Inferring Industry Classification...',
+      submessage: 'Parsing problem statement and business model mechanics...',
+      currentStepIndex: 1,
+    });
+
     try {
+      // Step 1: Create Idea, Problem DAG, Gaps, and TOPSIS candidates
+      setLoadingStep({
+        percent: 35,
+        message: 'Deconstructing Causal Problem DAG & Root Causes...',
+        submessage: 'Mapping root causes, intermediate hurdles, and surface symptoms...',
+        currentStepIndex: 2,
+      });
+
       const res = await apiFetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, rawPitch, stage }),
       });
       const data = await res.json();
-      if (data.success && data.idea) {
-        setIdeas((prev) => [
-          {
-            id: data.idea.id,
-            title: data.idea.title,
-            overallReadinessScore: data.idea.overallReadinessScore,
-          },
-          ...prev.filter((i) => i.id !== data.idea.id),
-        ]);
-        setCurrentIdeaId(data.idea.id);
-        setCurrentIdea(data.idea);
-        setIsCreatingIdea(false);
-        setActiveTab('intake');
-      } else {
+      if (!data.success || !data.idea) {
         if (data.error === 'QUOTA_EXCEEDED') {
           setIsQuotaExhaustedError(true);
           setIsApiKeyModalOpen(true);
         } else {
           alert(data.error || 'Failed to submit idea. Please check your pitch or Gemini API key.');
         }
+        return;
       }
+
+      let createdIdea: StartupIdea = data.idea;
+
+      setIdeas((prev) => [
+        {
+          id: createdIdea.id,
+          title: createdIdea.title,
+          overallReadinessScore: createdIdea.overallReadinessScore,
+        },
+        ...prev.filter((i) => i.id !== createdIdea.id),
+      ]);
+      setCurrentIdeaId(createdIdea.id);
+      setCurrentIdea(createdIdea);
+      setIsCreatingIdea(false);
+
+      // Step 2: 6-Pillar Gap Audit & TOPSIS
+      setLoadingStep({
+        percent: 55,
+        message: 'Auditing 6-Pillar Venture Gaps (TAM, Tech, Economics, Distribution, Legal, Moat)...',
+        submessage: 'Evaluating structural deficiencies and defensibility barriers...',
+        currentStepIndex: 3,
+      });
+
+      // Step 3: Automatically run 6-Persona Evaluation Council (VC, ICP, CTO, Lawyer, Analyst, Judge)
+      setLoadingStep({
+        percent: 75,
+        message: 'Convening 6-Persona Evaluation Council...',
+        submessage: 'VC Partner, ICP Target Customer, CTO, Lawyer, Analyst, & Judge deliberating...',
+        currentStepIndex: 5,
+      });
+
+      try {
+        const agentRes = await apiFetch(`/api/ideas/${createdIdea.id}/agents/evaluate`, { method: 'POST' });
+        const agentData = await agentRes.json();
+        if (agentData.success) {
+          createdIdea = {
+            ...createdIdea,
+            agentCritiques: agentData.critiques,
+            consensusReport: agentData.consensusReport,
+          };
+          setCurrentIdea(createdIdea);
+        }
+      } catch (agentErr) {
+        console.error('Auto agent evaluation error:', agentErr);
+      }
+
+      // Step 4: Automatically fetch Adaptive Clarification Questions
+      setLoadingStep({
+        percent: 92,
+        message: 'Generating adaptive clarification questions...',
+        submessage: 'Calculating entropy scores to resolve critical founder assumptions...',
+        currentStepIndex: 6,
+      });
+
+      try {
+        const qRes = await apiFetch(`/api/ideas/${createdIdea.id}/questions/next`);
+        const qData = await qRes.json();
+        if (qData.success && qData.allQuestions) {
+          createdIdea = {
+            ...createdIdea,
+            questions: qData.allQuestions,
+          };
+          setCurrentIdea(createdIdea);
+        }
+      } catch (qErr) {
+        console.error('Auto question fetch error:', qErr);
+      }
+
+      // Finish evaluation
+      setLoadingStep({
+        percent: 100,
+        message: 'Full Venture Audit Complete!',
+        submessage: 'Redirecting to workspace...',
+        currentStepIndex: 6,
+      });
+
     } catch (err: any) {
       console.error('Failed to create new idea:', err);
     } finally {
@@ -365,14 +483,20 @@ export default function App() {
     <div className="min-h-screen bg-[#f8f9fd] text-[#1f1f47] flex flex-col font-sans selection:bg-[#576cdb]/30 selection:text-white">
       {/* Top Header Bar - Exact Reference Replica spanning full width */}
       <Header
-        onToggleMobileMenu={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
+        isDisabled={isLoading}
+        onToggleMobileMenu={() => !isLoading && setIsMobileDrawerOpen(!isMobileDrawerOpen)}
         onOpenApiKeyModal={() => {
+          if (isLoading) return;
           setIsQuotaExhaustedError(false);
           setIsApiKeyModalOpen(true);
         }}
-        onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+        onOpenAlgorithmsModal={() => {
+          if (isLoading) return;
+          setIsAlgorithmsModalOpen(true);
+        }}
         idea={currentIdea}
         onNavigateTab={(tab) => {
+          if (isLoading) return;
           setActiveTab(tab);
           if (tab === 'questions' && currentIdea && (!currentIdea.questions || currentIdea.questions.length === 0)) {
             handleFetchNextQuestion();
@@ -383,12 +507,19 @@ export default function App() {
         }}
       />
 
+      {/* Live AI Venture Evaluation Progress Bar Overlay */}
+      <AnimatePresence>
+        {isLoading && <EvaluationProgressBar progress={loadingStep} />}
+      </AnimatePresence>
+
       {/* Main Workspace Body - Sidebar on Left with curved top + Content on Right */}
       <div className="flex-1 flex min-h-0 relative">
         {/* Sidebar Navigation Drawer */}
         <SidebarNavigation
+          isDisabled={isLoading}
           activeTab={activeTab}
           onTabChange={(tab) => {
+            if (isLoading) return;
             setActiveTab(tab);
             if (tab === 'questions' && currentIdea && (!currentIdea.questions || currentIdea.questions.length === 0)) {
               handleFetchNextQuestion();
@@ -398,14 +529,19 @@ export default function App() {
             }
           }}
           idea={currentIdea}
-          onOpenAlgorithmsModal={() => setIsAlgorithmsModalOpen(true)}
+          onOpenAlgorithmsModal={() => {
+            if (isLoading) return;
+            setIsAlgorithmsModalOpen(true);
+          }}
           onOpenApiKeyModal={() => {
+            if (isLoading) return;
             setIsQuotaExhaustedError(false);
             setIsApiKeyModalOpen(true);
           }}
-          onExportPptx={() => handleExportPptx('EXECUTIVE_DARK')}
+          onExportPptx={() => !isLoading && handleExportPptx('EXECUTIVE_DARK')}
           isExporting={isExporting}
           onOpenNewIdea={() => {
+            if (isLoading) return;
             setActiveTab('intake');
             setIsCreatingIdea(true);
           }}

@@ -29,6 +29,7 @@ interface HeaderProps {
   onOpenAlgorithmsModal?: () => void;
   idea?: StartupIdea | null;
   onNavigateTab?: (tab: TabId) => void;
+  isDisabled?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAlgorithmsModal,
   idea,
   onNavigateTab,
+  isDisabled = false,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -118,12 +120,15 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="h-4.5 w-4.5 text-[#8a94a6] shrink-0" />
             <input
               type="text"
+              disabled={isDisabled}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
+              onFocus={() => !isDisabled && setIsSearchFocused(true)}
               onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-              placeholder="Search Drive..."
-              className="w-full bg-transparent text-sm text-[#0f172a] placeholder-[#8a94a6] focus:outline-hidden font-normal"
+              placeholder={isDisabled ? 'AI Evaluation in progress...' : 'Search Drive...'}
+              className={`w-full bg-transparent text-sm text-[#0f172a] placeholder-[#8a94a6] focus:outline-hidden font-normal ${
+                isDisabled ? 'cursor-not-allowed opacity-50' : ''
+              }`}
             />
             {searchQuery && (
               <button
