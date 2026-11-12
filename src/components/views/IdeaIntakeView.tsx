@@ -34,8 +34,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   Layers,
+  X,
+  Lightbulb,
 } from 'lucide-react';
-import { StartupIdea } from '../../types/index.ts';
+import { IdeaValidationResult, StartupIdea } from '../../types/index.ts';
 import { TabId } from '../SidebarNavigation.tsx';
 
 interface IdeaIntakeViewProps {
@@ -47,6 +49,8 @@ interface IdeaIntakeViewProps {
   onToggleSubmitNew?: (open: boolean) => void;
   onNavigateTab?: (tab: TabId) => void;
   onOpenApiKeyModal?: () => void;
+  validationError?: IdeaValidationResult | null;
+  onDismissValidationError?: () => void;
 }
 
 export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
@@ -57,6 +61,8 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
   isSubmittingNew: externalIsSubmitting,
   onToggleSubmitNew,
   onNavigateTab,
+  validationError,
+  onDismissValidationError,
 }) => {
   const [internalIsSubmitting, setInternalIsSubmitting] = useState(!currentIdea);
   const isSubmittingNew =
@@ -125,6 +131,19 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
     setNameError(false);
     setPitchError(false);
     onSubmitNewIdea(title.trim(), rawPitch.trim(), stage);
+  };
+
+  const handleApplySampleIdea = () => {
+    setTitle('MedFlow AI');
+    setRawPitch(
+      'An intelligent emergency department triage and queue orchestration platform that predicts patient wait times and optimizes ER bed allocation to cut wait times by 40%.'
+    );
+    setStage('EARLY_MVP');
+    setNameError(false);
+    setPitchError(false);
+    if (onDismissValidationError) {
+      onDismissValidationError();
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -211,6 +230,100 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
               </span>
             </p>
           </motion.div>
+
+          {/* Idea Reality & Feasibility Gate Alert Banner */}
+          <AnimatePresence>
+            {validationError && (
+              <motion.div
+                initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full mb-6 rounded-2xl border border-rose-200/90 bg-gradient-to-br from-rose-50/95 via-white to-amber-50/60 p-5 sm:p-6 shadow-[0_12px_36px_rgba(225,29,72,0.08)] backdrop-blur-xl relative overflow-hidden"
+              >
+                {/* Accent glow corner */}
+                <div className="absolute top-0 right-0 w-44 h-44 bg-gradient-to-br from-rose-400/10 to-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-start justify-between gap-4 relative">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-200/60 flex items-center justify-center shrink-0 mt-0.5">
+                      <ShieldAlert className="w-5 h-5 text-rose-600" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center flex-wrap gap-2">
+                        <span className="text-xs uppercase tracking-wider font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                          {validationError.category === 'PHYSICALLY_IMPOSSIBLE'
+                            ? 'Physically Impossible Concept'
+                            : validationError.category === 'GIBBERISH'
+                            ? 'Gibberish / Non-Word Input'
+                            : validationError.category === 'NON_STARTUP'
+                            ? 'Non-Venture Input'
+                            : validationError.category === 'INSUFFICIENT_DETAIL'
+                            ? 'Insufficient Pitch Detail'
+                            : 'Reality Validation Gate Failed'}
+                        </span>
+                        <span className="text-xs text-rose-700/80 font-medium">
+                          Analysis Aborted to Protect Pipeline Integrity
+                        </span>
+                      </div>
+
+                      <h3 className="text-base sm:text-lg font-semibold text-[#1e2532] tracking-tight font-['Outfit',sans-serif]">
+                        Idea Reality & Feasibility Check: Not Approved
+                      </h3>
+
+                      <p className="text-sm text-[#475569] leading-relaxed font-sans">
+                        {validationError.reason}
+                      </p>
+
+                      {validationError.suggestion && (
+                        <div className="flex items-start gap-2 pt-1 text-xs sm:text-sm text-[#334155] bg-white/70 border border-rose-100 rounded-xl p-3">
+                          <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                          <span>
+                            <strong className="font-semibold text-[#1e2532]">Recommendation:</strong>{' '}
+                            {validationError.suggestion}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="flex items-center flex-wrap gap-2.5 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onDismissValidationError) onDismissValidationError();
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl bg-white border border-[#eaedf6] text-xs font-semibold text-[#1e2532] hover:bg-[#f8fafc] hover:border-[#cbd5e1] shadow-xs transition-all cursor-pointer"
+                        >
+                          Revise Pitch
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleApplySampleIdea}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#4f75fe] to-[#6366f1] text-white text-xs font-semibold hover:opacity-95 shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Load Sample Feasible Startup Idea</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dismiss X button */}
+                  {onDismissValidationError && (
+                    <button
+                      type="button"
+                      onClick={onDismissValidationError}
+                      className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors cursor-pointer"
+                      title="Dismiss alert"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* 3. Floating Minimalist Chat Box Card */}
           <motion.div

@@ -18,7 +18,7 @@ import { DynamicImprovementView } from './components/views/DynamicImprovementVie
 import { PitchDeckExportView } from './components/views/PitchDeckExportView.tsx';
 import { AlgorithmInspectionModal } from './components/modals/AlgorithmInspectionModal.tsx';
 import { ApiKeyModal } from './components/ApiKeyModal.tsx';
-import { StartupIdea, TopsisCriteriaWeights } from './types/index.ts';
+import { IdeaValidationResult, StartupIdea, TopsisCriteriaWeights } from './types/index.ts';
 import { DeckThemeName } from './server/pptxGenerator.ts';
 import { EvaluationProgressBar, EvaluationStepInfo } from './components/EvaluationProgressBar.tsx';
 
@@ -28,6 +28,7 @@ export default function App() {
   const [currentIdea, setCurrentIdea] = useState<StartupIdea | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('intake');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<IdeaValidationResult | null>(null);
   const [loadingStep, setLoadingStep] = useState<EvaluationStepInfo>({
     percent: 15,
     message: 'Analyzing Pitch & Vertical Classification...',
@@ -364,23 +365,16 @@ export default function App() {
     rawPitch: string,
     stage: string = 'CONCEPT'
   ) => {
+    setValidationError(null);
     setIsLoading(true);
     setLoadingStep({
-      percent: 15,
-      message: 'Analyzing Pitch & Inferring Industry Classification...',
-      submessage: 'Parsing problem statement and business model mechanics...',
+      percent: 12,
+      message: 'Validating Idea Reality & Feasibility (Gate 0)...',
+      submessage: 'Checking physics plausibility, semantic coherence, and venture viability...',
       currentStepIndex: 1,
     });
 
     try {
-      // Step 1: Create Idea, Problem DAG, Gaps, and TOPSIS candidates
-      setLoadingStep({
-        percent: 35,
-        message: 'Deconstructing Causal Problem DAG & Root Causes...',
-        submessage: 'Mapping root causes, intermediate hurdles, and surface symptoms...',
-        currentStepIndex: 2,
-      });
-
       const res = await apiFetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -388,12 +382,18 @@ export default function App() {
       });
       const data = await res.json();
       if (!data.success || !data.idea) {
+        if (data.error === 'IDEA_VALIDATION_FAILED' && data.validation) {
+          setValidationError(data.validation);
+          setIsLoading(false);
+          return;
+        }
         if (data.error === 'QUOTA_EXCEEDED') {
           setIsQuotaExhaustedError(true);
           setIsApiKeyModalOpen(true);
         } else {
           alert(data.error || 'Failed to submit idea. Please check your pitch or Gemini API key.');
         }
+        setIsLoading(false);
         return;
       }
 
@@ -575,6 +575,8 @@ export default function App() {
                     setIsQuotaExhaustedError(false);
                     setIsApiKeyModalOpen(true);
                   }}
+                  validationError={validationError}
+                  onDismissValidationError={() => setValidationError(null)}
                 />
               )}
 

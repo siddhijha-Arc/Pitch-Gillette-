@@ -32,7 +32,7 @@ const STEPS = [
   { id: 1, label: 'Pitch Intake', icon: Brain },
   { id: 2, label: 'Problem DAG', icon: Sparkles },
   { id: 3, label: '6-Pillar Gaps', icon: ShieldAlert },
-  { id: 4, label: 'TOPSIS Matrix', icon: SlidersHorizontal },
+  { id: 4, label: 'Best Solutions', icon: SlidersHorizontal },
   { id: 5, label: 'Agent Council', icon: Users },
   { id: 6, label: 'Adaptive Q&A', icon: HelpCircle },
 ];

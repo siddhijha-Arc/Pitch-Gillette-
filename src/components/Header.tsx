@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
   // Quick search results
   const allNavigationItems: Array<{ label: string; sub: string; tab: TabId }> = [
     { label: '6-Pillar Gap Audit', sub: 'Inspect fatal and critical vulnerabilities', tab: 'gaps' },
-    { label: 'TOPSIS Solution Studio', sub: 'Multi-criteria algorithmic solution matrix', tab: 'topsis' },
+    { label: 'Find Your Best Solution', sub: "Compare different ways to solve your startup's biggest challenges", tab: 'topsis' },
     { label: 'Agent Council & Personas', sub: '6 AI judge evaluations and consensus', tab: 'agents' },
     { label: 'Problem Decomposition DAG', sub: 'Root causes and symptom tree', tab: 'decomposition' },
     { label: 'Adaptive Founder Q&A', sub: 'Precision drill-down clarification questions', tab: 'questions' },

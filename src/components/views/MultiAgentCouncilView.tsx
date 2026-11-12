@@ -26,6 +26,22 @@ interface MultiAgentCouncilViewProps {
   isLoading: boolean;
 }
 
+// Eagerly prefetch avatar WebP images in the browser cache so they appear in milliseconds
+const PRELOAD_AVATARS = [
+  '/assets/aistudio/1000013129_20499cfa.webp',
+  '/assets/aistudio/1000013131_173bcf1b.webp',
+  '/assets/aistudio/1000013134_4647e05a.webp',
+  '/assets/aistudio/1000013133_3217a220.webp',
+  '/assets/aistudio/1000013130_64969f18.webp',
+  '/assets/aistudio/1000013132_ceaba763.webp',
+];
+if (typeof window !== 'undefined') {
+  PRELOAD_AVATARS.forEach((src) => {
+    const img = new Image();
+    img.src = src;
+  });
+}
+
 const AGENT_CONFIG: Record<
   string,
   {
@@ -37,6 +53,7 @@ const AGENT_CONFIG: Record<
     pillBg: string;
     pillText: string;
     avatarUrl: string;
+    avatarPng?: string;
     quickPrompts: string[];
   }
 > = {
@@ -48,7 +65,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#dce7fe]',
     pillBg: 'bg-[#dce7fe] hover:bg-[#c9dafc]',
     pillText: 'text-[#3b5998]',
-    avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
+    avatarUrl: '/assets/aistudio/1000013129_20499cfa.webp',
+    avatarPng: '/assets/aistudio/1000013129_20499cfa.png',
     quickPrompts: [
       'What TAM & market moat metric would upgrade your score to 10/10?',
       'How should we structure our Series A valuation pitch?',
@@ -63,7 +81,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#d7f3e3]',
     pillBg: 'bg-[#d7f3e3] hover:bg-[#c2ebd1]',
     pillText: 'text-[#1b764b]',
-    avatarUrl: '/assets/aistudio/1000013131_173bcf1b.png',
+    avatarUrl: '/assets/aistudio/1000013131_173bcf1b.webp',
+    avatarPng: '/assets/aistudio/1000013131_173bcf1b.png',
     quickPrompts: [
       'How can we prove zero clinical liability to your hospital board?',
       'What EHR integration features (Epic/Cerner) are non-negotiable?',
@@ -78,7 +97,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#fdf3cf]',
     pillBg: 'bg-[#fdf3cf] hover:bg-[#fcedba]',
     pillText: 'text-[#854d0e]',
-    avatarUrl: '/assets/aistudio/1000013134_4647e05a.png',
+    avatarUrl: '/assets/aistudio/1000013134_4647e05a.webp',
+    avatarPng: '/assets/aistudio/1000013134_4647e05a.png',
     quickPrompts: [
       'How do we guarantee 99.99% uptime in low-connectivity environments?',
       'What hardware/telemetry stack do you recommend for our MVP?',
@@ -93,7 +113,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#efe6fd]',
     pillBg: 'bg-[#efe6fd] hover:bg-[#e2d2fc]',
     pillText: 'text-[#6d28d9]',
-    avatarUrl: '/assets/aistudio/1000013133_3217a220.png',
+    avatarUrl: '/assets/aistudio/1000013133_3217a220.webp',
+    avatarPng: '/assets/aistudio/1000013133_3217a220.png',
     quickPrompts: [
       'How do we structure our corporate entity to satisfy state medical boards?',
       'What contract terms prevent Anti-Kickback statute violations?',
@@ -108,7 +129,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#ffe5d9]',
     pillBg: 'bg-[#ffe5d9] hover:bg-[#fed3c1]',
     pillText: 'text-[#c2410c]',
-    avatarUrl: '/assets/aistudio/1000013130_64969f18.png',
+    avatarUrl: '/assets/aistudio/1000013130_64969f18.webp',
+    avatarPng: '/assets/aistudio/1000013130_64969f18.png',
     quickPrompts: [
       'How can we improve our gross margin profile above 70%?',
       'What is the safest pricing tier strategy for enterprise contracts?',
@@ -123,7 +145,8 @@ const AGENT_CONFIG: Record<
     cardBg: 'bg-[#dbeafe]',
     pillBg: 'bg-[#dbeafe] hover:bg-[#c9dafc]',
     pillText: 'text-[#2563eb]',
-    avatarUrl: '/assets/aistudio/1000013132_ceaba763.png',
+    avatarUrl: '/assets/aistudio/1000013132_ceaba763.webp',
+    avatarPng: '/assets/aistudio/1000013132_ceaba763.png',
     quickPrompts: [
       'What is the single core feature we should focus on for our 30-day MVP?',
       'How do we remove onboarding friction for ambulance operators?',
@@ -352,7 +375,8 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
               cardBg: 'bg-[#dce7fe]',
               pillBg: 'bg-[#dce7fe] hover:bg-[#c9dafc]',
               pillText: 'text-[#3b5998]',
-              avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
+              avatarUrl: '/assets/aistudio/1000013129_20499cfa.webp',
+              avatarPng: '/assets/aistudio/1000013129_20499cfa.png',
               quickPrompts: [],
             };
 
@@ -367,13 +391,17 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
               >
                 {/* Top Pastel Banner with Grounded 3D Persona Avatar */}
                 <div className="relative h-56 sm:h-64 flex items-end justify-center overflow-hidden select-none">
-                  {/* 3D Character Avatar enlarged & grounded directly flush on top of the white card */}
-                  <img
-                    src={config.avatarUrl}
-                    alt={config.roleName}
-                    className="relative z-10 h-52 sm:h-60 w-auto max-w-[88%] object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,0.12)] transform transition-transform duration-300 group-hover:scale-105 translate-y-[2px]"
-                    loading="lazy"
-                  />
+                  {/* 3D Character Avatar loaded instantly via lightweight WebP with PNG fallback */}
+                  <picture className="relative z-10 h-52 sm:h-60 w-auto max-w-[88%] flex items-end justify-center">
+                    <source srcSet={config.avatarUrl} type="image/webp" />
+                    <img
+                      src={config.avatarPng || config.avatarUrl}
+                      alt={config.roleName}
+                      className="h-52 sm:h-60 w-auto object-contain object-bottom drop-shadow-[0_6px_14px_rgba(0,0,0,0.12)] transform transition-transform duration-300 group-hover:scale-105 translate-y-[2px]"
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </picture>
                 </div>
 
                 {/* Lower White Section with Rounded Top Corners */}
@@ -445,7 +473,8 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                   cardBg: 'bg-[#dce7fe]',
                   pillBg: 'bg-[#dce7fe]',
                   pillText: 'text-[#3b5998]',
-                  avatarUrl: '/assets/aistudio/1000013129_20499cfa.png',
+                  avatarUrl: '/assets/aistudio/1000013129_20499cfa.webp',
+                  avatarPng: '/assets/aistudio/1000013129_20499cfa.png',
                   quickPrompts: [],
                 };
                 const badgeClass = getVerdictBadge(selectedCritique.verdict);
@@ -458,11 +487,16 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                     <div className="p-6 border-b border-[#eaedf6] bg-[#f9f9fb] flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3.5">
                         <div className={`w-14 h-14 rounded-2xl ${config.cardBg} relative overflow-hidden flex items-end justify-center p-0.5 shrink-0 shadow-xs border border-white/80`}>
-                          <img
-                            src={config.avatarUrl}
-                            alt={config.roleName}
-                            className="relative z-10 h-13 w-auto object-contain object-bottom drop-shadow-sm translate-y-[1px]"
-                          />
+                          <picture className="relative z-10 h-13 w-auto flex items-end justify-center">
+                            <source srcSet={config.avatarUrl} type="image/webp" />
+                            <img
+                              src={config.avatarPng || config.avatarUrl}
+                              alt={config.roleName}
+                              className="relative z-10 h-13 w-auto object-contain object-bottom drop-shadow-sm translate-y-[1px]"
+                              loading="eager"
+                              decoding="async"
+                            />
+                          </picture>
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
@@ -609,11 +643,16 @@ export const MultiAgentCouncilView: React.FC<MultiAgentCouncilViewProps> = ({
                                     {msg.sender === 'user' ? (
                                       <User className="h-4 w-4" />
                                     ) : (
-                                      <img
-                                        src={config.avatarUrl}
-                                        alt={config.roleName}
-                                        className="h-7 w-auto object-contain object-bottom"
-                                      />
+                                      <picture className="h-7 w-auto flex items-end justify-center">
+                                        <source srcSet={config.avatarUrl} type="image/webp" />
+                                        <img
+                                          src={config.avatarPng || config.avatarUrl}
+                                          alt={config.roleName}
+                                          className="h-7 w-auto object-contain object-bottom"
+                                          loading="eager"
+                                          decoding="async"
+                                        />
+                                      </picture>
                                     )}
                                   </div>
 

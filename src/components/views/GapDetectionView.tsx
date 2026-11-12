@@ -116,7 +116,6 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
     if (pillarGaps.length === 0) {
       return {
         cardBg: 'bg-gradient-to-b from-[#f2fbf6] via-[#f9fdfa] to-white',
-        cardBorder: 'border-[#c9f1dc]',
         badge: {
           label: 'LOW SEVERITY',
           bg: 'bg-[#ecfdf5]',
@@ -132,7 +131,6 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
     if (hasFatal || hasCritical) {
       return {
         cardBg: 'bg-gradient-to-b from-[#fff5f5] via-[#fffbfb] to-white',
-        cardBorder: 'border-[#fed7d7]',
         badge: {
           label: 'HIGH SEVERITY',
           bg: 'bg-[#ffe4e6]',
@@ -144,7 +142,6 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
 
     return {
       cardBg: 'bg-gradient-to-b from-[#fffdf5] via-[#fffffb] to-white',
-      cardBorder: 'border-[#fef08a]',
       badge: {
         label: 'MODERATE',
         bg: 'bg-[#fef9c3]',
@@ -201,10 +198,15 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
           return (
             <motion.div
               key={cat.pillar}
-              whileHover={{ y: -6, boxShadow: '0 24px 48px rgba(15,23,42,0.08)' }}
+              whileHover={{
+                y: -8,
+                scale: 1.015,
+                boxShadow:
+                  '0 32px 64px -12px rgba(0,0,0,0.3), 0 18px 36px -8px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.3)',
+              }}
               whileTap={{ scale: 0.99 }}
               onClick={() => setSelectedPillar(cat.pillar)}
-              className={`${theme.cardBg} rounded-[32px] border ${theme.cardBorder} p-7 sm:p-8 shadow-[0_8px_30px_rgba(15,23,42,0.03)] transition-all duration-300 cursor-pointer flex flex-col justify-between group select-none`}
+              className={`${theme.cardBg} rounded-[32px] p-7 sm:p-8 shadow-[0_22px_45px_-10px_rgba(0,0,0,0.18),0_12px_24px_-6px_rgba(0,0,0,0.12),0_4px_8px_rgba(0,0,0,0.06)] transition-all duration-300 cursor-pointer flex flex-col justify-between group select-none`}
             >
               <div>
                 {/* Top Row: Bulged Out Glass Expo Icon Tile (Left) + Light-Shade Severity Badge (Right) */}
@@ -235,7 +237,7 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
                   </div>
 
                   {/* Light Shade Badge According to Severity of Gap */}
-                  <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wider font-['Plus_Jakarta_Sans',sans-serif] ${badge.bg} ${badge.text} shadow-xs border border-white/60`}>
+                  <span className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wider font-['Plus_Jakarta_Sans',sans-serif] ${badge.bg} ${badge.text} shadow-[0_2px_8px_rgba(0,0,0,0.08)]`}>
                     <span className={`w-2 h-2 rounded-full ${badge.dot}`} />
                     {badge.label}
                   </span>
@@ -254,7 +256,7 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
 
               <div>
                 {/* Thin Subtle Divider Line */}
-                <div className="border-t border-[#e2e8f0]/80 my-6" />
+                <div className="h-px bg-slate-200/80 my-6" />
 
                 {/* Bottom Row: Exact Typography for Identified Gaps + Circular Arrow Button */}
                 <div className="flex items-end justify-between">
@@ -275,11 +277,11 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Circular Right Arrow Button */}
+                  {/* Circular Right Arrow Button with bulged shadow, no border */}
                   <motion.div
                     whileHover={{ scale: 1.08 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-[50px] h-[50px] rounded-full border border-[#e2e8f0] bg-white group-hover:border-[#576cdb] group-hover:bg-[#576cdb] group-hover:text-white flex items-center justify-center text-[#334155] transition-all shadow-xs shrink-0"
+                    className="w-[50px] h-[50px] rounded-full bg-white shadow-[0_4px_16px_rgba(0,0,0,0.14)] group-hover:bg-[#576cdb] group-hover:text-white flex items-center justify-center text-[#334155] transition-all shrink-0"
                   >
                     <ArrowRight className="w-5 h-5 stroke-[2.2]" />
                   </motion.div>
@@ -307,7 +309,7 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-w-2xl bg-white rounded-3xl border border-[#eaedf6] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10"
+              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col max-h-[90vh] z-10"
             >
               {(() => {
                 const cat = CATEGORIES.find((c) => c.pillar === selectedPillar) || CATEGORIES[0];
@@ -343,7 +345,7 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
                         whileHover={{ scale: 1.1, rotate: 90 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setSelectedPillar(null)}
-                        className="w-10 h-10 rounded-full border border-[#eaedf6] bg-white hover:bg-[#eaedf6] flex items-center justify-center text-[#64748b] transition-colors shrink-0 cursor-pointer"
+                        className="w-10 h-10 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:bg-[#eaedf6] flex items-center justify-center text-[#64748b] transition-colors shrink-0 cursor-pointer"
                       >
                         <X className="h-5 w-5" />
                       </motion.button>
@@ -361,10 +363,10 @@ export const GapDetectionView: React.FC<GapDetectionViewProps> = ({
                         pillarGaps.map((gap) => (
                           <div
                             key={gap.id}
-                            className="p-5 rounded-2xl bg-[#f8fafc] border border-[#eaedf6] hover:border-[#cbd5e1] transition-all space-y-3"
+                            className="p-5 rounded-2xl bg-[#f8fafc] shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all space-y-3"
                           >
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-semibold px-3 py-1 rounded-full font-sans uppercase tracking-wider bg-white border border-[#e2e8f0] text-[#334155]">
+                              <span className="text-xs font-semibold px-3 py-1 rounded-full font-sans uppercase tracking-wider bg-white shadow-2xs text-[#334155]">
                                 {gap.severity.replace(/_/g, ' ')}
                               </span>
 

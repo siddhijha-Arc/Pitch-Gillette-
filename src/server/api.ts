@@ -25,6 +25,7 @@ import {
   getDefaultGeminiKey,
   DEFAULT_GEMINI_KEY,
 } from './gemini.ts';
+import { validateIdeaPlausibilityWithGemini } from './ideaValidator.ts';
 import { generatePptxBuffer } from './pptxGenerator.ts';
 import {
   AdaptiveQuestion,
@@ -141,6 +142,28 @@ router.get('/ideas/:id', (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/ideas/validate - Pre-flight validation gatekeeper check
+ */
+router.post('/ideas/validate', async (req: Request, res: Response) => {
+  const { title, rawPitch } = req.body;
+  if (!title || !rawPitch) {
+    res.status(400).json({ success: false, error: 'Title and pitch description are required' });
+    return;
+  }
+  const apiKey = getApiKey(req);
+  try {
+    const validation = await validateIdeaPlausibilityWithGemini(
+      String(title).trim(),
+      String(rawPitch).trim(),
+      apiKey
+    );
+    res.json({ success: true, validation });
+  } catch (err: any) {
+    handleApiError(res, err, 'Validation check failed');
+  }
+});
+
+/**
  * POST /api/ideas - Create and automatically analyze new idea
  */
 router.post('/ideas', async (req: Request, res: Response) => {
@@ -156,6 +179,17 @@ router.post('/ideas', async (req: Request, res: Response) => {
   try {
     const trimmedTitle = String(title).trim();
     const trimmedPitch = String(rawPitch).trim();
+
+    // 0. Pre-Flight Reality & Feasibility Validation Gate
+    const validation = await validateIdeaPlausibilityWithGemini(trimmedTitle, trimmedPitch, apiKey);
+    if (!validation.isValid) {
+      res.status(422).json({
+        success: false,
+        error: 'IDEA_VALIDATION_FAILED',
+        validation,
+      });
+      return;
+    }
 
     // 1. Problem Decomposition via Gemini + Causal DAG Analysis
     const decomposition = await decomposeIdeaWithGemini(trimmedTitle, trimmedPitch, apiKey);

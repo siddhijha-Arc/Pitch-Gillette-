@@ -45,7 +45,7 @@ export class QuotaExceededError extends Error {
 /**
  * Executes a structured JSON prompt against the Gemini REST API
  */
-async function callGeminiRestJson<T>(
+export async function callGeminiRestJson<T>(
   prompt: string,
   systemInstruction: string,
   userApiKey?: string

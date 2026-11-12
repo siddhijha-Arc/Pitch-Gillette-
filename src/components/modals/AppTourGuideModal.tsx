@@ -185,20 +185,20 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     tabId: 'topsis',
-    title: 'TOPSIS Decision Studio',
-    hindiTitle: 'Solutions Ka Mathematical Faisla',
-    category: 'Step 4 • Mathematical Optimization',
+    title: 'Find Your Best Solution',
+    hindiTitle: 'Startup Ka Sabse Best Solution Dhoondo',
+    category: 'Step 4 • Priority-Matched Solutions',
     icon: SlidersHorizontal,
     iconColor: 'text-[#059669]',
     iconBg: 'bg-[#dcfce7]',
     whatItIs:
-      'A deterministic decision algorithm (TOPSIS) that mathematically ranks strategic solutions. It calculates Euclidean distance to the Ideal Best solution (high impact, low cost) vs Ideal Worst.',
+      'Compare different ways to solve your startup’s biggest challenges. Ranks solutions based on how well they match your custom priorities (cost, speed, scale, simplicity, and market impact).',
     whatItIsHindi:
-      'Bina kisi AI hallucination ke, pure mathematics (TOPSIS algorithm) se batata hai ki aapke problem ka sabse best solution koun sa hai.',
+      'Aapke preferences (kam kharch, jaldi launch, scale) ke hisab se mathematically calculate karta hai ki aapke startup ke liye sabse best rasta koun sa hai.',
     howToUse: [
-      'Adjust the 5 criteria sliders: Feasibility, Cost Efficiency, Market Impact, Scalability, and Speed.',
-      'Or click presets like "Lean" (cost focus), "Growth" (impact focus), or "Speed" (fast to market).',
-      'Watch the solutions re-rank in real time with exact TOPSIS scores (0.000 to 1.000).',
+      'Answer the 5 simple priority questions or choose a preset like "Bootstrapped", "Fast MVP", or "VC Hypergrowth".',
+      'Review the #1 Recommended Solution with its key advantages, trade-offs, and immediate next steps.',
+      'Compare alternative options or open the "Advanced Analysis" tab to inspect the raw TOPSIS mathematical matrix.',
     ],
     keyCardsExplained: [
       {

@@ -99,7 +99,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
     },
     {
       id: 'topsis',
-      label: 'TOPSIS Studio',
+      label: 'Best Solutions',
       icon: SlidersHorizontal,
       badge: idea?.solutions ? `${idea.solutions.length}` : undefined,
     },

@@ -225,3 +225,17 @@ export interface StartupIdea {
   consensusReport?: ConsensusReport;
   pitchDeck: PitchDeckSlide[];
 }
+
+export type IdeaValidationCategory =
+  | 'VALID'
+  | 'GIBBERISH'
+  | 'PHYSICALLY_IMPOSSIBLE'
+  | 'NON_STARTUP'
+  | 'INSUFFICIENT_DETAIL';
+
+export interface IdeaValidationResult {
+  isValid: boolean;
+  category: IdeaValidationCategory;
+  reason: string;
+  suggestion: string;
+}
