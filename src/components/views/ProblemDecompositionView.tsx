@@ -16,7 +16,6 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Layers,
   Sparkles,
   TrendingDown,
   RefreshCw,
@@ -25,14 +24,12 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
-  ChevronRight,
   ShieldAlert,
   AlertTriangle,
   CheckCircle2,
   Activity,
   GitFork,
   Info,
-  Compass,
 } from 'lucide-react';
 import { ProblemNode, StartupIdea, ProblemNodeType } from '../../types/index.ts';
 
@@ -40,7 +37,6 @@ interface ProblemDecompositionViewProps {
   idea: StartupIdea;
   onDecompose: () => void;
   isLoading: boolean;
-  onOpenAppGuide?: () => void;
 }
 
 interface NodeLayout {
@@ -73,7 +69,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
   idea,
   onDecompose,
   isLoading,
-  onOpenAppGuide,
 }) => {
   const problems = useMemo(() => idea.problems || [], [idea.problems]);
 
@@ -82,7 +77,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [traceMode, setTraceMode] = useState<'NONE' | 'UPSTREAM' | 'DOWNSTREAM'>('NONE');
-  const [collapsedNodeIds, setCollapsedNodeIds] = useState<Set<string>>(new Set());
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState<boolean>(false);
 
   // Pan & Zoom state for Graph view
@@ -240,7 +234,7 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
       return { nodeLayouts: [], edgeLayouts: [] };
     }
 
-    const { adj, revAdj, probMap, depths, nodeTypes, cycleEdges } = graphTopology;
+    const { adj, revAdj, depths, nodeTypes, cycleEdges } = graphTopology;
 
     const rootNodes: ProblemNode[] = [];
     const intermediateNodes: ProblemNode[] = [];
@@ -316,7 +310,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
       for (const effectId of effectSet) {
         const effectPos = posMap.get(effectId);
         if (!effectPos) continue;
-        if (collapsedNodeIds.has(causeId)) continue;
 
         const x1 = causePos.x + cardWidth;
         const y1 = causePos.y + cardHeight / 2;
@@ -344,7 +337,7 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
     }
 
     return { nodeLayouts: layouts, edgeLayouts: edges };
-  }, [problems, graphTopology, draggedOffsets, collapsedNodeIds]);
+  }, [problems, graphTopology, draggedOffsets]);
 
   // 3. Highlighted Subgraph Logic
   const highlightedState = useMemo(() => {
@@ -527,17 +520,6 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
     setIsDetailDrawerOpen(true);
   };
 
-  // Toggle Collapse on Branch
-  const handleToggleCollapse = (nodeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCollapsedNodeIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      return next;
-    });
-  };
-
   // Stats calculation
   const rootCausesList = problems.filter(
     (p) => (graphTopology.nodeTypes.get(p.id) || (p.isRootCause ? 'ROOT_CAUSE' : 'INTERMEDIATE')) === 'ROOT_CAUSE'
@@ -577,19 +559,8 @@ export const ProblemDecompositionView: React.FC<ProblemDecompositionViewProps> =
           </p>
         </div>
 
-        {/* Action Controls & Tour Guide Trigger */}
+        {/* Action Controls */}
         <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-          {onOpenAppGuide && (
-            <button
-              onClick={onOpenAppGuide}
-              className="px-4 py-2.5 rounded-full bg-[#e0e7ff] hover:bg-[#d0dbfc] text-[#576cdb] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-              title="Open App Guide"
-            >
-              <Compass className="w-4 h-4" />
-              <span>How This Page Works</span>
-            </button>
-          )}
-
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

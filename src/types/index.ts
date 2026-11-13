@@ -36,13 +36,6 @@ export interface AssumptionItem {
 
 export type ProblemNodeType = 'ROOT_CAUSE' | 'INTERMEDIATE' | 'SYMPTOM';
 
-export interface CausalEdge {
-  fromId: string; // cause
-  toId: string;   // effect
-  relationshipLabel?: string; // e.g. "Triggers", "Amplifies", "Constrains", "Directly drives"
-  strength?: 'HIGH' | 'MEDIUM' | 'LOW';
-}
-
 export interface ProblemNode {
   id: string;
   ideaId?: string;
@@ -224,6 +217,7 @@ export interface StartupIdea {
   agentCritiques: AgentCritique[];
   consensusReport?: ConsensusReport;
   pitchDeck: PitchDeckSlide[];
+  marketReport?: MarketIntelligenceReport;
 }
 
 export type IdeaValidationCategory =
@@ -238,4 +232,126 @@ export interface IdeaValidationResult {
   category: IdeaValidationCategory;
   reason: string;
   suggestion: string;
+}
+
+export type MarketSourceType =
+  | 'GOOGLE_SEARCH'
+  | 'BRAVE_SEARCH'
+  | 'REDDIT_DISCUSSION'
+  | 'YOUTUBE_DISCUSSION'
+  | 'QUORA_DISCUSSION'
+  | 'HACKER_NEWS_DISCUSSION'
+  | 'PRODUCT_HUNT_DISCUSSION'
+  | 'STACK_EXCHANGE_QA'
+  | 'WORLD_BANK_DATA'
+  | 'INDUSTRY_REPORT'
+  | 'EXPERT_ANALYSIS';
+
+export type VerificationStatus =
+  | 'VERIFIED_FACT'
+  | 'THIRD_PARTY_ESTIMATE'
+  | 'AI_INTERPRETATION'
+  | 'UNAVAILABLE';
+
+export interface MarketSourceItem {
+  id: string;
+  title: string;
+  url: string;
+  sourceType: MarketSourceType;
+  platformName?: string;
+  publicationDate?: string;
+  retrievalDate: string;
+  evidenceExcerpt: string;
+  verificationStatus: VerificationStatus;
+  credibilityScore?: number;
+}
+
+export interface MarketOverviewSection {
+  industryOverview: string;
+  marketDemand: string;
+  targetAudience: string;
+  geography: string;
+  marketSizeEvidence?: {
+    totalAddressableMarket?: string;
+    cagr?: string;
+    sourceCitation?: string;
+  };
+}
+
+export interface MarketTrendItem {
+  id: string;
+  trendTitle: string;
+  description: string;
+  growthIndicator?: string;
+  evidenceSourceId?: string;
+}
+
+export interface CustomerProblemItem {
+  id: string;
+  problemTitle: string;
+  customerComplaintSummary: string;
+  discussionVolume?: string;
+  sentiment?: 'HIGH_NEGATIVE' | 'MODERATE' | 'MIXED';
+  sourcePlatform?:
+    | 'Reddit'
+    | 'YouTube'
+    | 'Quora'
+    | 'Hacker News'
+    | 'Product Hunt'
+    | 'Web Search'
+    | 'Brave Web'
+    | 'Industry Reports'
+    | string;
+  sourceId?: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
+}
+
+export interface MarketOpportunityItem {
+  id: string;
+  opportunityTitle: string;
+  description: string;
+  underservedSegment: string;
+  potentialDifferentiation: string;
+}
+
+export interface MarketRiskItem {
+  id: string;
+  riskTitle: string;
+  riskDescription: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  mitigationSuggestion: string;
+}
+
+export interface MarketStrategicRecommendations {
+  recommendedTargetAudience: string;
+  suggestedPositioning: string;
+  initialValidationStrategy: string[];
+  nextSteps: string[];
+}
+
+export interface MarketIntelligenceReport {
+  id: string;
+  ideaId: string;
+  generatedAt: string;
+  industryCategory: string;
+  searchQueriesUsed: string[];
+  sources: MarketSourceItem[];
+  overview: MarketOverviewSection;
+  trends: MarketTrendItem[];
+  customerProblems: CustomerProblemItem[];
+  opportunities: MarketOpportunityItem[];
+  risks: MarketRiskItem[];
+  recommendations: MarketStrategicRecommendations;
+  isLiveResearch: boolean;
+  apiStatus: {
+    googleWebSearch?: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    youtubeSearch?: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    quoraSearch?: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    braveSearch: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    redditApi: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    hackerNewsApi?: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    stackExchangeApi?: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+    worldBank: 'CONNECTED' | 'DEGRADED' | 'UNAVAILABLE';
+  };
 }

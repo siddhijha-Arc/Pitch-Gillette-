@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import {
-  HelpCircle,
   Sparkles,
   CheckCircle2,
   AlertCircle,
@@ -16,14 +15,12 @@ import { StartupIdea } from '../../types/index.ts';
 interface AdaptiveQuestionViewProps {
   idea: StartupIdea;
   onAnswerQuestion: (questionId: string, answerText: string) => void;
-  onFetchNextQuestion: () => void;
   isLoading: boolean;
 }
 
 export const AdaptiveQuestionView: React.FC<AdaptiveQuestionViewProps> = ({
   idea,
   onAnswerQuestion,
-  onFetchNextQuestion,
   isLoading,
 }) => {
   const [customAnswer, setCustomAnswer] = useState('');

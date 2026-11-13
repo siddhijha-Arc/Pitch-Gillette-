@@ -32,8 +32,6 @@ import {
   Users,
   Presentation,
   CheckCircle2,
-  AlertTriangle,
-  Layers,
   X,
   Lightbulb,
 } from 'lucide-react';
@@ -95,42 +93,36 @@ export const IdeaIntakeView: React.FC<IdeaIntakeViewProps> = ({
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
-    // 1. Mandatory Startup Name Validation with Red Vibration Shake
-    if (!title.trim()) {
-      setNameError(true);
-      setIsVibrating(true);
+    let finalTitle = title.trim();
+    let finalPitch = rawPitch.trim();
 
-      // Trigger hardware haptic feedback on mobile if supported
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate([100, 50, 100]);
-        } catch {
-          // Ignore vibration API permission restrictions
-        }
-      }
-
-      // Auto focus input
-      if (titleInputRef.current) {
-        titleInputRef.current.focus();
-      }
-
-      // Reset vibration animation after execution
-      setTimeout(() => {
-        setIsVibrating(false);
-      }, 550);
-
-      return;
+    // Auto-derive Startup Name if user typed the pitch but omitted the name input
+    if (!finalTitle && finalPitch) {
+      const words = finalPitch.split(/\s+/).slice(0, 4).join(' ');
+      finalTitle = words.length > 3
+        ? words.charAt(0).toUpperCase() + words.slice(1)
+        : 'New Startup Venture';
+      setTitle(finalTitle);
     }
 
-    // 2. Pitch content validation
-    if (!rawPitch.trim()) {
+    // Auto-derive pitch description if user typed only the startup name
+    if (!finalPitch && finalTitle) {
+      finalPitch = `${finalTitle} - An innovative venture solving key market challenges and scaling operational efficiency.`;
+      setRawPitch(finalPitch);
+    }
+
+    if (!finalTitle && !finalPitch) {
+      setNameError(true);
       setPitchError(true);
+      setIsVibrating(true);
+      if (titleInputRef.current) titleInputRef.current.focus();
+      setTimeout(() => setIsVibrating(false), 550);
       return;
     }
 
     setNameError(false);
     setPitchError(false);
-    onSubmitNewIdea(title.trim(), rawPitch.trim(), stage);
+    onSubmitNewIdea(finalTitle, finalPitch, stage);
   };
 
   const handleApplySampleIdea = () => {

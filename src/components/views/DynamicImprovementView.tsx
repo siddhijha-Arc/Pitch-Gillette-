@@ -11,7 +11,6 @@ import {
   Sparkles,
   RefreshCw,
   ShieldCheck,
-  AlertCircle,
 } from 'lucide-react';
 import { StartupIdea } from '../../types/index.ts';
 

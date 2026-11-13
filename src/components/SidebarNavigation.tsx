@@ -26,6 +26,7 @@ import {
   PanelLeftOpen,
   X,
   Plus,
+  Globe,
 } from 'lucide-react';
 import { StartupIdea } from '../types/index.ts';
 
@@ -37,7 +38,8 @@ export type TabId =
   | 'questions'
   | 'agents'
   | 'improvement'
-  | 'deck';
+  | 'deck'
+  | 'market-intelligence';
 
 interface SidebarNavigationProps {
   activeTab: TabId;
@@ -126,6 +128,12 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
       label: 'Pitch Deck',
       icon: Presentation,
       badge: idea?.pitchDeck ? `${idea.pitchDeck.length} S` : undefined,
+    },
+    {
+      id: 'market-intelligence',
+      label: 'Market Intel',
+      icon: Globe,
+      badge: idea?.marketReport ? 'Live' : 'New',
     },
   ];
 

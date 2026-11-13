@@ -6,6 +6,7 @@
  * so the frontend can prompt the user to input their custom API key.
  */
 
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import {
   AgentCritique,
   GapRecord,
@@ -24,15 +25,11 @@ export function getDefaultGeminiKey(): string {
   return '';
 }
 
-export const DEFAULT_GEMINI_KEY = getDefaultGeminiKey();
-
-// High-availability model cascade verified to have active quota
+// Valid active models supported by @google/genai
 const MODELS_CASCADE = [
   'gemini-3.1-flash-lite',
-  'gemini-3.5-flash-lite',
-  'gemini-3.5-flash',
-  'gemini-3.6-flash',
-];
+  'gemini-4-hydrogen',
+] as const;
 
 export class QuotaExceededError extends Error {
   code = 'QUOTA_EXCEEDED';
@@ -42,8 +39,31 @@ export class QuotaExceededError extends Error {
   }
 }
 
+export function createGeminiClient(apiKey: string): GoogleGenAI {
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
+    },
+  });
+}
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`Request timed out on model ${label}`)), ms);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 /**
- * Executes a structured JSON prompt against the Gemini REST API
+ * Executes a structured JSON prompt against the Gemini API via @google/genai
  */
 export async function callGeminiRestJson<T>(
   prompt: string,
@@ -53,64 +73,36 @@ export async function callGeminiRestJson<T>(
   const apiKey = userApiKey && userApiKey.trim() !== '' ? userApiKey.trim() : getDefaultGeminiKey();
   if (!apiKey) {
     throw new QuotaExceededError(
-      'GEMINI_API_KEY is not configured. Set the GEMINI_API_KEY environment variable on Render or enter your key in the UI.'
+      'GEMINI_API_KEY is not configured. Set the GEMINI_API_KEY environment variable or enter your key in the UI.'
     );
   }
 
+  const ai = createGeminiClient(apiKey);
   let lastError: any = null;
   let isAnyQuotaExceeded = false;
 
   for (const model of MODELS_CASCADE) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemInstruction }],
-          },
-          contents: [
-            {
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction,
             responseMimeType: 'application/json',
-            temperature: 0.2,
             thinkingConfig: {
-              thinkingBudget: 0,
+              thinkingLevel:
+                model === 'gemini-4-hydrogen' ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL,
             },
           },
         }),
-        signal: controller.signal,
-      });
+        30000,
+        model
+      );
 
-      clearTimeout(timeoutId);
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        const errMsg = data.error?.message || '';
-        const errCode = data.error?.code;
-        if (errCode === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-          isAnyQuotaExceeded = true;
-          // Try next model in cascade
-          continue;
-        }
-        lastError = new Error(`Gemini API Error (${errCode}): ${errMsg}`);
-        continue;
-      }
-
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const text = response.text;
       if (!text) {
-        lastError = new Error('Empty response from Gemini');
+        lastError = new Error(`Empty response from Gemini model ${model}`);
         continue;
       }
 
@@ -122,13 +114,16 @@ export async function callGeminiRestJson<T>(
 
       return JSON.parse(cleaned) as T;
     } catch (err: any) {
-      if (err.name === 'AbortError') {
-        lastError = new Error(`Request timed out on model ${model}`);
-        continue;
-      }
       const errStr = String(err?.message || err);
-      if (errStr.includes('429') || errStr.includes('quota') || errStr.includes('RESOURCE_EXHAUSTED')) {
+      const errStatus = err?.status || err?.code;
+      if (
+        errStatus === 429 ||
+        errStr.includes('429') ||
+        errStr.includes('quota') ||
+        errStr.includes('RESOURCE_EXHAUSTED')
+      ) {
         isAnyQuotaExceeded = true;
+        lastError = err;
         continue;
       }
       lastError = err;
@@ -492,50 +487,49 @@ async function callGeminiRestText(
     );
   }
 
+  const ai = createGeminiClient(apiKey);
   let lastError: any = null;
+  let isAnyQuotaExceeded = false;
 
   for (const model of MODELS_CASCADE) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemInstruction }],
-          },
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model,
           contents,
-          generationConfig: {
-            temperature: 0.7,
+          config: {
+            systemInstruction,
+            thinkingConfig: {
+              thinkingLevel:
+                model === 'gemini-4-hydrogen' ? ThinkingLevel.LOW : ThinkingLevel.MINIMAL,
+            },
           },
         }),
-        signal: controller.signal,
-      });
+        30000,
+        model
+      );
 
-      clearTimeout(timeoutId);
-
-      const data = await res.json();
-      if (!res.ok) {
-        const errMsg = data.error?.message || '';
-        const errCode = data.error?.code;
-        if (errCode === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-          continue;
-        }
-        lastError = new Error(`Gemini API Error (${errCode}): ${errMsg}`);
-        continue;
-      }
-
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const text = response.text;
       if (text) return text.trim();
     } catch (err: any) {
+      const errStr = String(err?.message || err);
+      const errStatus = err?.status || err?.code;
+      if (
+        errStatus === 429 ||
+        errStr.includes('429') ||
+        errStr.includes('quota') ||
+        errStr.includes('RESOURCE_EXHAUSTED')
+      ) {
+        isAnyQuotaExceeded = true;
+        lastError = err;
+        continue;
+      }
       lastError = err;
     }
+  }
+
+  if (isAnyQuotaExceeded) {
+    throw new QuotaExceededError();
   }
 
   throw lastError || new QuotaExceededError('Gemini text generation failed.');

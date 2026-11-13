@@ -7,6 +7,7 @@
  */
 
 import express, { Request, Response } from 'express';
+import { ThinkingLevel } from '@google/genai';
 import { calculateTopsis } from './algorithms/topsis.ts';
 import { ProblemDependencyGraph } from './algorithms/graph.ts';
 import { analyzeAgentConsensus } from './algorithms/consensus.ts';
@@ -22,13 +23,13 @@ import {
   runMultiAgentEvaluationWithGemini,
   synthesizeImprovedPitchWithGemini,
   chatWithJudgePersonaGemini,
+  createGeminiClient,
   getDefaultGeminiKey,
-  DEFAULT_GEMINI_KEY,
 } from './gemini.ts';
 import { validateIdeaPlausibilityWithGemini } from './ideaValidator.ts';
+import { generateLiveMarketIntelligenceReport } from './marketIntelligenceService.ts';
 import { generatePptxBuffer } from './pptxGenerator.ts';
 import {
-  AdaptiveQuestion,
   StartupIdea,
   TopsisCriteriaWeights,
 } from '../types/index.ts';
@@ -83,29 +84,37 @@ router.get('/test/algorithms', (_req: Request, res: Response) => {
  */
 router.get('/gemini/status', async (req: Request, res: Response) => {
   const apiKey = getApiKey(req) || getDefaultGeminiKey();
+  if (!apiKey) {
+    return res.json({
+      success: false,
+      isQuotaExhausted: true,
+      error: 'GEMINI_API_KEY is not configured.',
+    });
+  }
   try {
-    const resTest = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-goog-api-key': apiKey },
-        body: JSON.stringify({ contents: [{ parts: [{ text: 'ping' }] }] }),
-      }
-    );
-    const data = await resTest.json();
-    if (!resTest.ok) {
-      const errMsg = data.error?.message || '';
-      const isQuota = resTest.status === 429 || errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED');
-      return res.json({
-        success: false,
-        isQuotaExhausted: isQuota,
-        status: resTest.status,
-        error: errMsg,
-      });
-    }
+    const ai = createGeminiClient(apiKey);
+    await ai.models.generateContent({
+      model: 'gemini-4-hydrogen',
+      contents: 'ping',
+      config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+      },
+    });
     return res.json({ success: true, isQuotaExhausted: false });
   } catch (err: any) {
-    return res.json({ success: false, isQuotaExhausted: false, error: err.message });
+    const errMsg = String(err?.message || err);
+    const errStatus = err?.status || err?.code;
+    const isQuota =
+      errStatus === 429 ||
+      errMsg.includes('429') ||
+      errMsg.includes('quota') ||
+      errMsg.includes('RESOURCE_EXHAUSTED');
+    return res.json({
+      success: false,
+      isQuotaExhausted: isQuota,
+      status: errStatus,
+      error: errMsg,
+    });
   }
 });
 
@@ -280,6 +289,33 @@ router.post('/ideas', async (req: Request, res: Response) => {
     res.status(201).json({ success: true, idea: newIdea });
   } catch (err: any) {
     handleApiError(res, err, 'Failed to analyze idea');
+  }
+});
+
+/**
+ * POST /api/ideas/:id/market-intelligence - Generate live market intelligence report
+ */
+router.post('/ideas/:id/market-intelligence', async (req: Request, res: Response) => {
+  const idea = ideasDatabase.get(req.params.id);
+  if (!idea) {
+    res.status(404).json({ success: false, error: 'Startup idea not found' });
+    return;
+  }
+  const apiKey = getApiKey(req);
+  try {
+    const marketReport = await generateLiveMarketIntelligenceReport(
+      idea.id,
+      idea.title,
+      idea.rawPitch,
+      idea.industry || 'Technology',
+      apiKey
+    );
+    idea.marketReport = marketReport;
+    idea.updatedAt = new Date().toISOString();
+    ideasDatabase.set(idea.id, idea);
+    res.json({ success: true, marketReport, idea });
+  } catch (err: any) {
+    handleApiError(res, err, 'Failed to generate market intelligence report');
   }
 });
 

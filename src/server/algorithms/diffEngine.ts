@@ -6,39 +6,6 @@
 
 import { IdeaVersion, StartupIdea } from '../../types/index.ts';
 
-export interface VersionDiffResult {
-  previousVersion: number;
-  newVersion: number;
-  deltaReadinessScore: number;
-  resolvedGapsList: string[];
-  remainingRiskCount: number;
-  deltaSummary: string;
-}
-
-export function computeVersionDiff(
-  oldVersion: IdeaVersion | undefined,
-  newVersion: IdeaVersion
-): VersionDiffResult {
-  const prevScore = oldVersion ? oldVersion.readinessScore : 45;
-  const deltaScore = newVersion.readinessScore - prevScore;
-
-  const resolvedGapsList = newVersion.resolvedGaps || [];
-  const remainingRiskCount = (newVersion.remainingRisks || []).length;
-
-  const deltaSummary = oldVersion
-    ? `Version ${newVersion.version} upgraded readiness from ${prevScore}/100 to ${newVersion.readinessScore}/100 (+${deltaScore} pts). Addressed ${resolvedGapsList.length} key structural gaps with ${remainingRiskCount} operational risks remaining under monitoring.`
-    : `Initial baseline Version ${newVersion.version} established with initial readiness ${newVersion.readinessScore}/100.`;
-
-  return {
-    previousVersion: oldVersion ? oldVersion.version : 0,
-    newVersion: newVersion.version,
-    deltaReadinessScore: deltaScore,
-    resolvedGapsList,
-    remainingRiskCount,
-    deltaSummary,
-  };
-}
-
 /**
  * Creates a new improved version snapshot and adds it to the idea's version ledger.
  */

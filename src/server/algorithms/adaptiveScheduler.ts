@@ -12,12 +12,6 @@ import {
   StartupIdea,
 } from '../../types/index.ts';
 
-export interface QuestionPrioritizationContext {
-  problems: ProblemNode[];
-  gaps: GapRecord[];
-  questions: AdaptiveQuestion[];
-}
-
 /**
  * Calculates priority score for questions based on information gap severity and uncertainty.
  */

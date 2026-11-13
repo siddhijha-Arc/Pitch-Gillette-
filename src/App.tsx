@@ -4,7 +4,7 @@
  * Live Gemini AI integration with QuotaExceeded prompt modal.
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Header } from './components/Header.tsx';
 import { TabId, SidebarNavigation } from './components/SidebarNavigation.tsx';
@@ -16,6 +16,7 @@ import { AdaptiveQuestionView } from './components/views/AdaptiveQuestionView.ts
 import { MultiAgentCouncilView } from './components/views/MultiAgentCouncilView.tsx';
 import { DynamicImprovementView } from './components/views/DynamicImprovementView.tsx';
 import { PitchDeckExportView } from './components/views/PitchDeckExportView.tsx';
+import { MarketIntelligenceView } from './components/views/MarketIntelligenceView.tsx';
 import { AlgorithmInspectionModal } from './components/modals/AlgorithmInspectionModal.tsx';
 import { ApiKeyModal } from './components/ApiKeyModal.tsx';
 import { IdeaValidationResult, StartupIdea, TopsisCriteriaWeights } from './types/index.ts';
@@ -23,7 +24,6 @@ import { DeckThemeName } from './server/pptxGenerator.ts';
 import { EvaluationProgressBar, EvaluationStepInfo } from './components/EvaluationProgressBar.tsx';
 
 export default function App() {
-  const [ideas, setIdeas] = useState<Array<{ id: string; title: string; overallReadinessScore: number }>>([]);
   const [currentIdeaId, setCurrentIdeaId] = useState<string>('');
   const [currentIdea, setCurrentIdea] = useState<StartupIdea | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>('intake');
@@ -93,7 +93,6 @@ export default function App() {
       const res = await apiFetch('/api/ideas');
       const data = await res.json();
       if (data.success && data.ideas) {
-        setIdeas(data.ideas);
         if (!currentIdeaId && data.ideas.length > 0) {
           setCurrentIdeaId(data.ideas[0].id);
         }
@@ -243,7 +242,6 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setCurrentIdea(data.idea);
-        fetchIdeas();
       }
     } catch (err) {
       console.error('Failed to submit question answer:', err);
@@ -302,7 +300,6 @@ export default function App() {
       const data = await res.json();
       if (data.success) {
         setCurrentIdea(data.idea);
-        fetchIdeas();
       }
     } catch (err) {
       console.error('Improvement synthesis failed:', err);
@@ -399,14 +396,6 @@ export default function App() {
 
       let createdIdea: StartupIdea = data.idea;
 
-      setIdeas((prev) => [
-        {
-          id: createdIdea.id,
-          title: createdIdea.title,
-          overallReadinessScore: createdIdea.overallReadinessScore,
-        },
-        ...prev.filter((i) => i.id !== createdIdea.id),
-      ]);
       setCurrentIdeaId(createdIdea.id);
       setCurrentIdea(createdIdea);
       setIsCreatingIdea(false);
@@ -474,6 +463,12 @@ export default function App() {
 
     } catch (err: any) {
       console.error('Failed to create new idea:', err);
+      const errMsg = String(err?.message || err);
+      alert(errMsg.includes('quota') || errMsg.includes('429') || errMsg.includes('KEY')
+        ? 'Gemini API Quota or Key issue. Please check or enter your Gemini API Key in Settings.'
+        : `Failed to submit idea: ${errMsg}`);
+      setIsQuotaExhaustedError(true);
+      setIsApiKeyModalOpen(true);
     } finally {
       setIsLoading(false);
     }
@@ -609,7 +604,6 @@ export default function App() {
                 <AdaptiveQuestionView
                   idea={currentIdea}
                   onAnswerQuestion={handleAnswerQuestion}
-                  onFetchNextQuestion={handleFetchNextQuestion}
                   isLoading={isLoading}
                 />
               )}
@@ -637,6 +631,14 @@ export default function App() {
                   onExportPptx={handleExportPptx}
                   isLoading={isLoading}
                   isExporting={isExporting}
+                />
+              )}
+
+              {activeTab === 'market-intelligence' && currentIdea && (
+                <MarketIntelligenceView
+                  idea={currentIdea}
+                  onUpdateIdea={(upd) => setCurrentIdea(upd)}
+                  apiFetch={apiFetch}
                 />
               )}
             </motion.div>

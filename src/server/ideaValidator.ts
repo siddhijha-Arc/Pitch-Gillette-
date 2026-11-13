@@ -52,14 +52,15 @@ export function performFastHeuristicValidation(
   }
 
   // Check individual words for unnatural initial consonant clusters (e.g., "jgdtuxig", "zkmp", "qwrx")
+  // Note: 'y' acts as a vowel in words like "systems", "symptoms", "cycles", "physics", "crypto"
   const tokens = combined.split(/[^a-z0-9]+/i).filter((tok) => tok.length >= 4);
   const validThreeConsonantStarts = new Set([
-    'str', 'spr', 'spl', 'scr', 'squ', 'chr', 'phr', 'thr', 'shr', 'sch', 'skr'
+    'str', 'spr', 'spl', 'scr', 'squ', 'chr', 'phr', 'thr', 'shr', 'sch', 'skr', 'sph'
   ]);
 
   for (const token of tokens) {
-    // Starts with 3+ consonants: check if valid English cluster
-    const startConsonants = token.match(/^([bcdfghjklmnpqrstvwxyz]{3,})/i);
+    // Starts with 3+ consonants (excluding y): check if valid English cluster
+    const startConsonants = token.match(/^([bcdfghjklmnpqrstvwxz]{3,})/i);
     if (startConsonants) {
       const cluster = startConsonants[1].toLowerCase();
       const threePrefix = cluster.slice(0, 3);
@@ -73,25 +74,15 @@ export function performFastHeuristicValidation(
       }
     }
 
-    // Check for impossible consonant bigrams (e.g., 'jg', 'dt' at word start, 'xg', 'zx', 'qj', 'jx')
-    if (/^(jg|gdt|zx|qw|qj|dx|tx|xg|zk|qg|pk|tk|fp)/i.test(token)) {
-      return {
-        isValid: false,
-        category: 'GIBBERISH',
-        reason: `Meaningless character sequence detected ("${token}"). GILLET CHECK only accepts legitimate venture concepts.`,
-        suggestion: 'Describe your startup in plain language (e.g., "AI-powered scheduling platform for hospitals").',
-      };
-    }
-
-    // Check for 5+ consecutive consonants anywhere in the token
-    const longConsonants = token.match(/[bcdfghjklmnpqrstvwxyz]{5,}/i);
+    // Check for extreme 6+ consecutive consonants (excluding y) anywhere in the token
+    const longConsonants = token.match(/[bcdfghjklmnpqrstvwxz]{6,}/i);
     if (longConsonants) {
-      const allowedWords = new Set(['strengths', 'rhythms', 'twelfths', 'catchphrases']);
+      const allowedWords = new Set(['catchphrases', 'watchstrap', 'latchstring']);
       if (!allowedWords.has(token.toLowerCase())) {
         return {
           isValid: false,
           category: 'GIBBERISH',
-          reason: `Unnatural consonant cluster detected ("${token}"). Please enter real startup terminology.`,
+          reason: `Unnatural character pattern detected ("${token}"). Please enter real startup terminology.`,
           suggestion: 'Write clear sentences explaining your startup solution and market.',
         };
       }

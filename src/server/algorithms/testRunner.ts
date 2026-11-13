@@ -8,7 +8,7 @@
 import { calculateTopsis } from './topsis.ts';
 import { ProblemDependencyGraph } from './graph.ts';
 import { analyzeAgentConsensus } from './consensus.ts';
-import { rankCandidateQuestions, applyAnswerToIdea } from './adaptiveScheduler.ts';
+import { applyAnswerToIdea } from './adaptiveScheduler.ts';
 import { SolutionCandidate, ProblemNode, AgentCritique, StartupIdea } from '../../types/index.ts';
 
 export interface TestResult {
